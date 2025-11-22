@@ -1,0 +1,12 @@
+package CTS.booking;
+
+public class Ticket {
+	private int ticketId;
+	private Money pricePaid;
+	
+	
+	public String getSeatLabel() {
+		
+		
+	}
+}

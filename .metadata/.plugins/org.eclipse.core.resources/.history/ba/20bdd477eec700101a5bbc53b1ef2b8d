@@ -1,8 +1,5 @@
 package CTS.booking;
-import java.util.*;
 import CTS.misc.*;
-import CTS.misc.Date;
-
 
 public class Order {
 	private int orderID;

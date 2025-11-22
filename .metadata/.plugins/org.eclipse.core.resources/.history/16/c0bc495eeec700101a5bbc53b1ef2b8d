@@ -21,9 +21,4 @@ public class Ticket {
 	public Money getPrice() {
 		return pricePaid;
 	}
-	
-	public String getSeatLabel() {
-		
-		return "need work";
-	}
 }
