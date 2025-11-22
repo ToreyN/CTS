@@ -1,0 +1,325 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<uml:Model xmi:version="2.1"
+  xmlns:xmi="http://www.omg.org/XMI"
+  xmlns:uml="http://www.eclipse.org/uml2/5.0.0/UML"
+  xmi:id="_CTS_Model" name="CTS">
+
+  <!-- Primitive Types -->
+  <packagedElement xmi:type="uml:PrimitiveType" xmi:id="_String" name="String"/>
+  <packagedElement xmi:type="uml:PrimitiveType" xmi:id="_Integer" name="Integer"/>
+  <packagedElement xmi:type="uml:PrimitiveType" xmi:id="_Boolean" name="Boolean"/>
+  <packagedElement xmi:type="uml:PrimitiveType" xmi:id="_Real" name="Real"/>
+  <packagedElement xmi:type="uml:PrimitiveType" xmi:id="_Date" name="Date"/>
+
+  <!-- Value Object: Money -->
+  <packagedElement xmi:type="uml:DataType" xmi:id="_Money" name="Money">
+    <ownedAttribute xmi:id="_Money_amount" name="amount"><type xmi:idref="_Real"/></ownedAttribute>
+    <ownedAttribute xmi:id="_Money_currency" name="currency"><type xmi:idref="_String"/></ownedAttribute>
+  </packagedElement>
+
+  <!-- Enums -->
+  <packagedElement xmi:type="uml:Enumeration" xmi:id="_EventStatus" name="EventStatus">
+    <ownedLiteral xmi:id="_EventStatus_DRAFT" name="DRAFT"/>
+    <ownedLiteral xmi:id="_EventStatus_PUBLISHED" name="PUBLISHED"/>
+    <ownedLiteral xmi:id="_EventStatus_CANCELED" name="CANCELED"/>
+  </packagedElement>
+
+  <packagedElement xmi:type="uml:Enumeration" xmi:id="_SeatStatus" name="SeatStatus">
+    <ownedLiteral xmi:id="_SeatStatus_AVAILABLE" name="AVAILABLE"/>
+    <ownedLiteral xmi:id="_SeatStatus_HELD" name="HELD"/>
+    <ownedLiteral xmi:id="_SeatStatus_SOLD" name="SOLD"/>
+    <ownedLiteral xmi:id="_SeatStatus_ADMIN_HELD" name="ADMIN_HELD"/>
+  </packagedElement>
+
+  <packagedElement xmi:type="uml:Enumeration" xmi:id="_HoldStatus" name="HoldStatus">
+    <ownedLiteral xmi:id="_HoldStatus_ACTIVE" name="ACTIVE"/>
+    <ownedLiteral xmi:id="_HoldStatus_EXPIRED" name="EXPIRED"/>
+    <ownedLiteral xmi:id="_HoldStatus_CONVERTED" name="CONVERTED"/>
+  </packagedElement>
+
+  <packagedElement xmi:type="uml:Enumeration" xmi:id="_OrderStatus" name="OrderStatus">
+    <ownedLiteral xmi:id="_OrderStatus_CONFIRMED" name="CONFIRMED"/>
+    <ownedLiteral xmi:id="_OrderStatus_REFUNDED" name="REFUNDED"/>
+    <ownedLiteral xmi:id="_OrderStatus_CANCELED" name="CANCELED"/>
+  </packagedElement>
+
+  <packagedElement xmi:type="uml:Enumeration" xmi:id="_PaymentType" name="PaymentType">
+    <ownedLiteral xmi:id="_PaymentType_AUTH" name="AUTH"/>
+    <ownedLiteral xmi:id="_PaymentType_CHARGE" name="CHARGE"/>
+    <ownedLiteral xmi:id="_PaymentType_REFUND" name="REFUND"/>
+  </packagedElement>
+
+  <packagedElement xmi:type="uml:Enumeration" xmi:id="_PaymentStatus" name="PaymentStatus">
+    <ownedLiteral xmi:id="_PaymentStatus_PENDING" name="PENDING"/>
+    <ownedLiteral xmi:id="_PaymentStatus_SUCCESS" name="SUCCESS"/>
+    <ownedLiteral xmi:id="_PaymentStatus_FAILED" name="FAILED"/>
+  </packagedElement>
+
+  <packagedElement xmi:type="uml:Enumeration" xmi:id="_RefundStatus" name="RefundStatus">
+    <ownedLiteral xmi:id="_RefundStatus_PENDING" name="PENDING"/>
+    <ownedLiteral xmi:id="_RefundStatus_APPROVED" name="APPROVED"/>
+    <ownedLiteral xmi:id="_RefundStatus_DENIED" name="DENIED"/>
+  </packagedElement>
+
+  <!-- Packages & Classes -->
+  <packagedElement xmi:type="uml:Package" xmi:id="_pkg_user" name="user">
+    <packagedElement xmi:type="uml:Class" xmi:id="_User" name="User" isAbstract="true">
+      <ownedAttribute xmi:id="_User_userId" name="userId"><type xmi:idref="_Integer"/></ownedAttribute>
+      <ownedAttribute xmi:id="_User_name" name="name"><type xmi:idref="_String"/></ownedAttribute>
+      <ownedAttribute xmi:id="_User_email" name="email"><type xmi:idref="_String"/></ownedAttribute>
+      <ownedAttribute xmi:id="_User_passwordHash" name="passwordHash"><type xmi:idref="_String"/></ownedAttribute>
+    </packagedElement>
+    <packagedElement xmi:type="uml:Class" xmi:id="_ConcertGoer" name="ConcertGoer"/>
+    <packagedElement xmi:type="uml:Class" xmi:id="_VenueAdmin" name="VenueAdmin"/>
+    <packagedElement xmi:type="uml:Generalization" xmi:id="_gen1"><general xmi:idref="_User"/><specific xmi:idref="_ConcertGoer"/></packagedElement>
+    <packagedElement xmi:type="uml:Generalization" xmi:id="_gen2"><general xmi:idref="_User"/><specific xmi:idref="_VenueAdmin"/></packagedElement>
+  </packagedElement>
+
+  <packagedElement xmi:type="uml:Package" xmi:id="_pkg_event" name="event">
+    <packagedElement xmi:type="uml:Class" xmi:id="_Event" name="Event">
+      <ownedAttribute xmi:id="_Event_eventId" name="eventId"><type xmi:idref="_Integer"/></ownedAttribute>
+      <ownedAttribute xmi:id="_Event_name" name="name"><type xmi:idref="_String"/></ownedAttribute>
+      <ownedAttribute xmi:id="_Event_startDateTime" name="startDateTime"><type xmi:idref="_Date"/></ownedAttribute>
+      <ownedAttribute xmi:id="_Event_venueName" name="venueName"><type xmi:idref="_String"/></ownedAttribute>
+      <ownedAttribute xmi:id="_Event_description" name="description"><type xmi:idref="_String"/></ownedAttribute>
+      <ownedAttribute xmi:id="_Event_capacity" name="capacity"><type xmi:idref="_Integer"/></ownedAttribute>
+      <ownedAttribute xmi:id="_Event_status" name="status"><type xmi:idref="_EventStatus"/></ownedAttribute>
+    </packagedElement>
+    <packagedElement xmi:type="uml:Class" xmi:id="_Artist" name="Artist">
+      <ownedAttribute xmi:id="_Artist_artistId" name="artistId"><type xmi:idref="_Integer"/></ownedAttribute>
+      <ownedAttribute xmi:id="_Artist_stageName" name="stageName"><type xmi:idref="_String"/></ownedAttribute>
+      <ownedAttribute xmi:id="_Artist_genre" name="genre"><type xmi:idref="_String"/></ownedAttribute>
+    </packagedElement>
+    <packagedElement xmi:type="uml:Class" xmi:id="_LineupEntry" name="LineupEntry">
+      <ownedAttribute xmi:id="_LineupEntry_position" name="position"><type xmi:idref="_Integer"/></ownedAttribute>
+      <ownedAttribute xmi:id="_LineupEntry_notes" name="notes"><type xmi:idref="_String"/></ownedAttribute>
+    </packagedElement>
+  </packagedElement>
+
+  <packagedElement xmi:type="uml:Package" xmi:id="_pkg_seating" name="seating">
+    <packagedElement xmi:type="uml:Class" xmi:id="_Section" name="Section">
+      <ownedAttribute xmi:id="_Section_sectionId" name="sectionId"><type xmi:idref="_Integer"/></ownedAttribute>
+      <ownedAttribute xmi:id="_Section_name" name="name"><type xmi:idref="_String"/></ownedAttribute>
+      <ownedAttribute xmi:id="_Section_description" name="description"><type xmi:idref="_String"/></ownedAttribute>
+    </packagedElement>
+    <packagedElement xmi:type="uml:Class" xmi:id="_PricingTier" name="PricingTier">
+      <ownedAttribute xmi:id="_PricingTier_tierId" name="tierId"><type xmi:idref="_Integer"/></ownedAttribute>
+      <ownedAttribute xmi:id="_PricingTier_label" name="label"><type xmi:idref="_String"/></ownedAttribute>
+      <ownedAttribute xmi:id="_PricingTier_price" name="price"><type xmi:idref="_Money"/></ownedAttribute>
+    </packagedElement>
+    <packagedElement xmi:type="uml:Class" xmi:id="_Seat" name="Seat">
+      <ownedAttribute xmi:id="_Seat_seatId" name="seatId"><type xmi:idref="_Integer"/></ownedAttribute>
+      <ownedAttribute xmi:id="_Seat_rowLabel" name="rowLabel"><type xmi:idref="_String"/></ownedAttribute>
+      <ownedAttribute xmi:id="_Seat_seatNumber" name="seatNumber"><type xmi:idref="_Integer"/></ownedAttribute>
+      <ownedAttribute xmi:id="_Seat_status" name="status"><type xmi:idref="_SeatStatus"/></ownedAttribute>
+      <ownedAttribute xmi:id="_Seat_currentPrice" name="currentPrice"><type xmi:idref="_Money"/></ownedAttribute>
+    </packagedElement>
+  </packagedElement>
+
+  <packagedElement xmi:type="uml:Package" xmi:id="_pkg_booking" name="booking">
+    <packagedElement xmi:type="uml:Class" xmi:id="_SeatHold" name="SeatHold">
+      <ownedAttribute xmi:id="_SeatHold_holdId" name="holdId"><type xmi:idref="_Integer"/></ownedAttribute>
+      <ownedAttribute xmi:id="_SeatHold_createdAt" name="createdAt"><type xmi:idref="_Date"/></ownedAttribute>
+      <ownedAttribute xmi:id="_SeatHold_expiresAt" name="expiresAt"><type xmi:idref="_Date"/></ownedAttribute>
+      <ownedAttribute xmi:id="_SeatHold_status" name="status"><type xmi:idref="_HoldStatus"/></ownedAttribute>
+    </packagedElement>
+    <packagedElement xmi:type="uml:Class" xmi:id="_Order" name="Order">
+      <ownedAttribute xmi:id="_Order_orderId" name="orderId"><type xmi:idref="_Integer"/></ownedAttribute>
+      <ownedAttribute xmi:id="_Order_createdAt" name="createdAt"><type xmi:idref="_Date"/></ownedAttribute>
+      <ownedAttribute xmi:id="_Order_totalAmount" name="totalAmount"><type xmi:idref="_Money"/></ownedAttribute>
+      <ownedAttribute xmi:id="_Order_status" name="status"><type xmi:idref="_OrderStatus"/></ownedAttribute>
+    </packagedElement>
+    <packagedElement xmi:type="uml:Class" xmi:id="_Ticket" name="Ticket">
+      <ownedAttribute xmi:id="_Ticket_ticketId" name="ticketId"><type xmi:idref="_Integer"/></ownedAttribute>
+      <ownedAttribute xmi:id="_Ticket_pricePaid" name="pricePaid"><type xmi:idref="_Money"/></ownedAttribute>
+    </packagedElement>
+  </packagedElement>
+
+  <packagedElement xmi:type="uml:Package" xmi:id="_pkg_payment" name="payment">
+    <packagedElement xmi:type="uml:Class" xmi:id="_PaymentTransaction" name="PaymentTransaction">
+      <ownedAttribute xmi:id="_PaymentTransaction_paymentId" name="paymentId"><type xmi:idref="_Integer"/></ownedAttribute>
+      <ownedAttribute xmi:id="_PaymentTransaction_gatewayRef" name="gatewayRef"><type xmi:idref="_String"/></ownedAttribute>
+      <ownedAttribute xmi:id="_PaymentTransaction_type" name="type"><type xmi:idref="_PaymentType"/></ownedAttribute>
+      <ownedAttribute xmi:id="_PaymentTransaction_amount" name="amount"><type xmi:idref="_Money"/></ownedAttribute>
+      <ownedAttribute xmi:id="_PaymentTransaction_timestamp" name="timestamp"><type xmi:idref="_Date"/></ownedAttribute>
+      <ownedAttribute xmi:id="_PaymentTransaction_status" name="status"><type xmi:idref="_PaymentStatus"/></ownedAttribute>
+    </packagedElement>
+  </packagedElement>
+
+  <packagedElement xmi:type="uml:Package" xmi:id="_pkg_refund" name="refund">
+    <packagedElement xmi:type="uml:Class" xmi:id="_RefundRequest" name="RefundRequest">
+      <ownedAttribute xmi:id="_RefundRequest_refundId" name="refundId"><type xmi:idref="_Integer"/></ownedAttribute>
+      <ownedAttribute xmi:id="_RefundRequest_reason" name="reason"><type xmi:idref="_String"/></ownedAttribute>
+      <ownedAttribute xmi:id="_RefundRequest_createdAt" name="createdAt"><type xmi:idref="_Date"/></ownedAttribute>
+      <ownedAttribute xmi:id="_RefundRequest_processedAt" name="processedAt"><type xmi:idref="_Date"/></ownedAttribute>
+      <ownedAttribute xmi:id="_RefundRequest_status" name="status"><type xmi:idref="_RefundStatus"/></ownedAttribute>
+    </packagedElement>
+  </packagedElement>
+
+  <!-- Associations -->
+  <packagedElement xmi:type="uml:Association" xmi:id="_assoc_Event_Seat" memberEnd="_Event_seats_end _Seat_event_end">
+    <ownedEnd xmi:id="_Event_seats_end" name="seats" type="_Seat" aggregation="shared">
+      <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_Event_seats_upper" value="*"/>
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_Event_seats_lower" value="1"/>
+    </ownedEnd>
+    <ownedEnd xmi:id="_Seat_event_end" name="event" type="_Event">
+      <upperValue xmi:type="uml:LiteralInteger" xmi:id="_Seat_event_upper" value="1"/>
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_Seat_event_lower" value="1"/>
+    </ownedEnd>
+  </packagedElement>
+
+  <packagedElement xmi:type="uml:Association" xmi:id="_assoc_Section_Seat" memberEnd="_Section_seats_end _Seat_section_end">
+    <ownedEnd xmi:id="_Section_seats_end" name="seats" type="_Seat" aggregation="shared">
+      <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_Section_seats_upper" value="*"/>
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_Section_seats_lower" value="0"/>
+    </ownedEnd>
+    <ownedEnd xmi:id="_Seat_section_end" name="section" type="_Section">
+      <upperValue xmi:type="uml:LiteralInteger" xmi:id="_Seat_section_upper" value="1"/>
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_Seat_section_lower" value="1"/>
+    </ownedEnd>
+  </packagedElement>
+
+  <packagedElement xmi:type="uml:Association" xmi:id="_assoc_PricingTier_Seat" memberEnd="_PricingTier_seats_end _Seat_tier_end">
+    <ownedEnd xmi:id="_PricingTier_seats_end" name="seats" type="_Seat">
+      <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_PricingTier_seats_upper" value="*"/>
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_PricingTier_seats_lower" value="0"/>
+    </ownedEnd>
+    <ownedEnd xmi:id="_Seat_tier_end" name="pricingTier" type="_PricingTier">
+      <upperValue xmi:type="uml:LiteralInteger" xmi:id="_Seat_tier_upper" value="1"/>
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_Seat_tier_lower" value="0"/>
+    </ownedEnd>
+  </packagedElement>
+
+  <packagedElement xmi:type="uml:Association" xmi:id="_assoc_CG_Order" memberEnd="_CG_orders_end _Order_buyer_end">
+    <ownedEnd xmi:id="_CG_orders_end" name="orders" type="_Order">
+      <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_CG_orders_upper" value="*"/>
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_CG_orders_lower" value="0"/>
+    </ownedEnd>
+    <ownedEnd xmi:id="_Order_buyer_end" name="buyer" type="_ConcertGoer">
+      <upperValue xmi:type="uml:LiteralInteger" xmi:id="_Order_buyer_upper" value="1"/>
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_Order_buyer_lower" value="1"/>
+    </ownedEnd>
+  </packagedElement>
+
+  <packagedElement xmi:type="uml:Association" xmi:id="_assoc_Event_Order" memberEnd="_Event_orders_end _Order_event_end">
+    <ownedEnd xmi:id="_Event_orders_end" name="orders" type="_Order">
+      <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_Event_orders_upper" value="*"/>
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_Event_orders_lower" value="0"/>
+    </ownedEnd>
+    <ownedEnd xmi:id="_Order_event_end" name="event" type="_Event">
+      <upperValue xmi:type="uml:LiteralInteger" xmi:id="_Order_event_upper" value="1"/>
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_Order_event_lower" value="1"/>
+    </ownedEnd>
+  </packagedElement>
+
+  <packagedElement xmi:type="uml:Association" xmi:id="_assoc_Order_Ticket" memberEnd="_Order_tickets_end _Ticket_order_end">
+    <ownedEnd xmi:id="_Order_tickets_end" name="tickets" type="_Ticket">
+      <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_Order_tickets_upper" value="*"/>
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_Order_tickets_lower" value="1"/>
+    </ownedEnd>
+    <ownedEnd xmi:id="_Ticket_order_end" name="order" type="_Order">
+      <upperValue xmi:type="uml:LiteralInteger" xmi:id="_Ticket_order_upper" value="1"/>
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_Ticket_order_lower" value="1"/>
+    </ownedEnd>
+  </packagedElement>
+
+  <packagedElement xmi:type="uml:Association" xmi:id="_assoc_Ticket_Seat" memberEnd="_Ticket_seat_end _Seat_ticket_end">
+    <ownedEnd xmi:id="_Ticket_seat_end" name="seat" type="_Seat">
+      <upperValue xmi:type="uml:LiteralInteger" xmi:id="_Ticket_seat_upper" value="1"/>
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_Ticket_seat_lower" value="1"/>
+    </ownedEnd>
+    <ownedEnd xmi:id="_Seat_ticket_end" name="ticket" type="_Ticket">
+      <upperValue xmi:type="uml:LiteralInteger" xmi:id="_Seat_ticket_upper" value="1"/>
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_Seat_ticket_lower" value="0"/>
+    </ownedEnd>
+  </packagedElement>
+
+  <packagedElement xmi:type="uml:Association" xmi:id="_assoc_SeatHold_Seat" memberEnd="_SeatHold_seats_end _Seat_hold_end">
+    <ownedEnd xmi:id="_SeatHold_seats_end" name="seats" type="_Seat">
+      <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_SeatHold_seats_upper" value="*"/>
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_SeatHold_seats_lower" value="1"/>
+    </ownedEnd>
+    <ownedEnd xmi:id="_Seat_hold_end" name="hold" type="_SeatHold">
+      <upperValue xmi:type="uml:LiteralInteger" xmi:id="_Seat_hold_upper" value="1"/>
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_Seat_hold_lower" value="0"/>
+    </ownedEnd>
+  </packagedElement>
+
+  <packagedElement xmi:type="uml:Association" xmi:id="_assoc_CG_SeatHold" memberEnd="_CG_holds_end _SeatHold_owner_end">
+    <ownedEnd xmi:id="_CG_holds_end" name="holds" type="_SeatHold">
+      <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_CG_holds_upper" value="*"/>
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_CG_holds_lower" value="0"/>
+    </ownedEnd>
+    <ownedEnd xmi:id="_SeatHold_owner_end" name="owner" type="_ConcertGoer">
+      <upperValue xmi:type="uml:LiteralInteger" xmi:id="_SeatHold_owner_upper" value="1"/>
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_SeatHold_owner_lower" value="1"/>
+    </ownedEnd>
+  </packagedElement>
+
+  <packagedElement xmi:type="uml:Association" xmi:id="_assoc_Event_SeatHold" memberEnd="_Event_holds_end _SeatHold_event_end">
+    <ownedEnd xmi:id="_Event_holds_end" name="holds" type="_SeatHold">
+      <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_Event_holds_upper" value="*"/>
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_Event_holds_lower" value="0"/>
+    </ownedEnd>
+    <ownedEnd xmi:id="_SeatHold_event_end" name="event" type="_Event">
+      <upperValue xmi:type="uml:LiteralInteger" xmi:id="_SeatHold_event_upper" value="1"/>
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_SeatHold_event_lower" value="1"/>
+    </ownedEnd>
+  </packagedElement>
+
+  <packagedElement xmi:type="uml:Association" xmi:id="_assoc_Order_Payment" memberEnd="_Order_payments_end _Payment_order_end">
+    <ownedEnd xmi:id="_Order_payments_end" name="payments" type="_PaymentTransaction">
+      <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_Order_payments_upper" value="*"/>
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_Order_payments_lower" value="0"/>
+    </ownedEnd>
+    <ownedEnd xmi:id="_Payment_order_end" name="order" type="_Order">
+      <upperValue xmi:type="uml:LiteralInteger" xmi:id="_Payment_order_upper" value="1"/>
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_Payment_order_lower" value="1"/>
+    </ownedEnd>
+  </packagedElement>
+
+  <packagedElement xmi:type="uml:Association" xmi:id="_assoc_Order_Refund" memberEnd="_Order_refund_end _Refund_order_end">
+    <ownedEnd xmi:id="_Order_refund_end" name="refund" type="_RefundRequest">
+      <upperValue xmi:type="uml:LiteralInteger" xmi:id="_Order_refund_upper" value="1"/>
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_Order_refund_lower" value="0"/>
+    </ownedEnd>
+    <ownedEnd xmi:id="_Refund_order_end" name="order" type="_Order">
+      <upperValue xmi:type="uml:LiteralInteger" xmi:id="_Refund_order_upper" value="1"/>
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_Refund_order_lower" value="1"/>
+    </ownedEnd>
+  </packagedElement>
+
+  <packagedElement xmi:type="uml:Association" xmi:id="_assoc_Admin_Refund" memberEnd="_Admin_processed_end _Refund_admin_end">
+    <ownedEnd xmi:id="_Admin_processed_end" name="processedRefunds" type="_RefundRequest">
+      <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_Admin_processed_upper" value="*"/>
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_Admin_processed_lower" value="0"/>
+    </ownedEnd>
+    <ownedEnd xmi:id="_Refund_admin_end" name="processedBy" type="_VenueAdmin">
+      <upperValue xmi:type="uml:LiteralInteger" xmi:id="_Refund_admin_upper" value="1"/>
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_Refund_admin_lower" value="0"/>
+    </ownedEnd>
+  </packagedElement>
+
+  <packagedElement xmi:type="uml:Association" xmi:id="_assoc_Event_Lineup" memberEnd="_Event_lineup_end _Lineup_event_end">
+    <ownedEnd xmi:id="_Event_lineup_end" name="lineup" type="_LineupEntry">
+      <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_Event_lineup_upper" value="*"/>
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_Event_lineup_lower" value="0"/>
+    </ownedEnd>
+    <ownedEnd xmi:id="_Lineup_event_end" name="event" type="_Event">
+      <upperValue xmi:type="uml:LiteralInteger" xmi:id="_Lineup_event_upper" value="1"/>
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_Lineup_event_lower" value="1"/>
+    </ownedEnd>
+  </packagedElement>
+
+  <packagedElement xmi:type="uml:Association" xmi:id="_assoc_Lineup_Artist" memberEnd="_Lineup_artist_end _Artist_lineup_end">
+    <ownedEnd xmi:id="_Lineup_artist_end" name="artist" type="_Artist">
+      <upperValue xmi:type="uml:LiteralInteger" xmi:id="_Lineup_artist_upper" value="1"/>
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_Lineup_artist_lower" value="1"/>
+    </ownedEnd>
+    <ownedEnd xmi:id="_Artist_lineup_end" name="appearances" type="_LineupEntry">
+      <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_Artist_lineup_upper" value="*"/>
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_Artist_lineup_lower" value="0"/>
+    </ownedEnd>
+  </packagedElement>
+
+</uml:Model>
