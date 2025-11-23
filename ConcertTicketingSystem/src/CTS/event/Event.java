@@ -1,90 +1,169 @@
-import java.util.ArrayList;
-import java.util.List;
-
 package CTS.event;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
 public class Event {
-    private int id;
+    private int eventId;
     private String name;
-    private String date;        
+    private Date startDateTime;
+    private String venueName;
     private String description;
-    private String venue;
-    private EventStatus status = EventStatus.DRAFT;
+    private int capacity;
+    private EventStatus status;
 
-    private List<Seat> seats = new ArrayList<>();
+    private List<LineupEntry> lineup = new ArrayList<>();
 
-    public Event(int id, String name, String date, String description, String venue) {
-        this.id = id;
+    public Event(int eventId,
+                 String name,
+                 Date startDateTime,
+                 String venueName,
+                 String description,
+                 int capacity,
+                 EventStatus status) {
+        this.eventId = eventId;
         this.name = name;
-        this.date = date;
+        this.startDateTime = startDateTime;
+        this.venueName = venueName;
         this.description = description;
-        this.venue = venue;
+        this.capacity = capacity;
+        this.status = status;
     }
 
-    /**
-     * Generate a grid of seats like rows A, B, C... with numeric seat numbers.
-     */
-    public void createDefaultSeating(int numRows, int seatsPerRow, double basePrice) {
-        seats.clear();
-        for (int r = 0; r < numRows; r++) {
-            char rowChar = (char) ('A' + r);
-            String row = String.valueOf(rowChar);
-            for (int i = 1; i <= seatsPerRow; i++) {
-                String seatId = row + i;
-                Seat seat = new Seat(seatId, row, i, basePrice);
-                seats.add(seat);
-            }
-        }
+    public int getEventId() {
+        return eventId;
     }
 
-    public Seat findSeatById(String seatId) {
-        for (Seat s : seats) {
-            if (s.getId().equalsIgnoreCase(seatId)) {
-                return s;
-            }
-        }
-        return null;
-    }
-
-    public int getId() {
-        return id;
+    public void setEventId(int eventId) {
+        this.eventId = eventId;
     }
 
     public String getName() {
         return name;
     }
 
-    public String getDate() {
-        return date;
+    public Date getStartDateTime() {
+        return startDateTime;
+    }
+
+    public String getVenueName() {
+        return venueName;
     }
 
     public String getDescription() {
         return description;
     }
 
-    public String getVenue() {
-        return venue;
+    public int getCapacity() {
+        return capacity;
     }
 
     public EventStatus getStatus() {
         return status;
     }
 
-    public void setStatus(EventStatus status) {
-        this.status = status;
+    public List<LineupEntry> getLineup() {
+        return lineup;
     }
 
-    public List<Seat> getSeats() {
-        return seats;
+    public void addLineupEntry(LineupEntry entry) {
+        lineup.add(entry);
+    }
+
+    
+    public void publish() {
+        if (status == EventStatus.DRAFT) {
+            status = EventStatus.PUBLISHED;
+        }
+    }
+
+    public void cancel() {
+        status = EventStatus.CANCELED;
+    }
+
+    public void updateDescription(String desc) {
+        this.description = desc;
+    }
+
+    public void setCapacity(int capacity) {
+        this.capacity = capacity;
+    }
+
+    
+    public int getAvailableSeats() {
+        return capacity;
+    }
+
+    // ===== CSV support =====
+    // Format:
+    // eventId,name,startDateTimeMillis,venueName,description,capacity,status
+
+    public String toCsvRow() {
+        long millis = startDateTime != null ? startDateTime.getTime() : 0L;
+        return eventId + "," +
+                escape(name) + "," +
+                millis + "," +
+                escape(venueName) + "," +
+                escape(description) + "," +
+                capacity + "," +
+                status.name();
+    }
+
+    public static Event fromCsvRow(String line) {
+        String[] parts = line.split(",", 7);
+        int id = Integer.parseInt(parts[0]);
+        String name = unescape(parts[1]);
+        long millis = Long.parseLong(parts[2]);
+        String venue = unescape(parts[3]);
+        String desc = unescape(parts[4]);
+        int capacity = Integer.parseInt(parts[5]);
+        EventStatus status = EventStatus.valueOf(parts[6]);
+        Date date = millis == 0L ? null : new Date(millis);
+        return new Event(id, name, date, venue, desc, capacity, status);
+    }
+
+    public static List<Event> loadFromCsv(Path path) throws IOException {
+        List<Event> result = new ArrayList<>();
+        if (!Files.exists(path)) {
+            return result;
+        }
+        for (String line : Files.readAllLines(path)) {
+            if (line.trim().isEmpty() || line.startsWith("#")) continue;
+            result.add(fromCsvRow(line));
+        }
+        return result;
+    }
+
+    public static void saveToCsv(Path path, List<Event> events) throws IOException {
+        List<String> lines = new ArrayList<>();
+        lines.add("# eventId,name,startDateTimeMillis,venueName,description,capacity,status");
+        for (Event e : events) {
+            lines.add(e.toCsvRow());
+        }
+        Files.write(path, lines);
+    }
+
+    private static String escape(String s) {
+        if (s == null) return "";
+        return s.replace("\\", "\\\\").replace(",", "\\,");
+    }
+
+    private static String unescape(String s) {
+        return s.replace("\\,", ",").replace("\\\\", "\\");
     }
 
     @Override
     public String toString() {
         return "Event{" +
-                "id=" + id +
+                "eventId=" + eventId +
                 ", name='" + name + '\'' +
-                ", date='" + date + '\'' +
-                ", venue='" + venue + '\'' +
+                ", startDateTime=" + startDateTime +
+                ", venueName='" + venueName + '\'' +
+                ", capacity=" + capacity +
                 ", status=" + status +
                 '}';
     }
