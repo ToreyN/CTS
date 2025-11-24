@@ -7,7 +7,19 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+/**
+ * Payment transaction for an Order.
+ * Matches the domain model:
+ *  - paymentId : int
+ *  - gatewayRef : String
+ *  - type : PaymentType
+ *  - amount : Money
+ *  - timestamp : Date
+ *  - status : PaymentStatus
+ *
+ */
 public class PaymentTransaction {
+
     private int paymentId;
     private String gatewayRef;
     private PaymentType type;
@@ -42,25 +54,50 @@ public class PaymentTransaction {
         return gatewayRef;
     }
 
+    public void setGatewayRef(String gatewayRef) {
+        this.gatewayRef = gatewayRef;
+    }
+
     public PaymentType getType() {
         return type;
+    }
+
+    public void setType(PaymentType type) {
+        this.type = type;
     }
 
     public Money getAmount() {
         return amount;
     }
 
+    public void setAmount(Money amount) {
+        this.amount = amount;
+    }
+
     public Date getTimestamp() {
         return timestamp;
+    }
+
+    public void setTimestamp(Date timestamp) {
+        this.timestamp = timestamp;
     }
 
     public PaymentStatus getStatus() {
         return status;
     }
 
+    public void setStatus(PaymentStatus status) {
+        this.status = status;
+    }
+
     public Order getOrder() {
         return order;
     }
+
+    public void setOrder(Order order) {
+        this.order = order;
+    }
+
 
     public void markSuccess() {
         this.status = PaymentStatus.SUCCESS;
@@ -68,11 +105,9 @@ public class PaymentTransaction {
 
     public void markFailed(String reason) {
         this.status = PaymentStatus.FAILED;
-        
-    }
-
-    // ===== CSV support =====
-    // Format:
+    
+    // ===== CSV SUPPORT =====
+    // CSV format:
     // paymentId,orderId,gatewayRef,type,amountInline,timestampMillis,status
 
     public String toCsvRow() {
@@ -97,9 +132,13 @@ public class PaymentTransaction {
         public final Date timestamp;
         public final PaymentStatus status;
 
-        public RawPaymentRow(int paymentId, int orderId, String gatewayRef,
-                             PaymentType type, Money amount,
-                             Date timestamp, PaymentStatus status) {
+        public RawPaymentRow(int paymentId,
+                             int orderId,
+                             String gatewayRef,
+                             PaymentType type,
+                             Money amount,
+                             Date timestamp,
+                             PaymentStatus status) {
             this.paymentId = paymentId;
             this.orderId = orderId;
             this.gatewayRef = gatewayRef;
@@ -116,7 +155,9 @@ public class PaymentTransaction {
             return result;
         }
         for (String line : Files.readAllLines(path)) {
-            if (line.trim().isEmpty() || line.startsWith("#")) continue;
+            if (line.trim().isEmpty() || line.startsWith("#")) {
+                continue;
+            }
             String[] parts = line.split(",", 7);
             int paymentId = Integer.parseInt(parts[0]);
             int orderId = Integer.parseInt(parts[1]);
@@ -124,9 +165,11 @@ public class PaymentTransaction {
             PaymentType type = PaymentType.valueOf(parts[3]);
             Money amount = Money.fromInlineString(parts[4]);
             long millis = Long.parseLong(parts[5]);
-            Date ts = millis == 0L ? null : new Date(millis);
+            Date timestamp = millis == 0L ? null : new Date(millis);
             PaymentStatus status = PaymentStatus.valueOf(parts[6]);
-            result.add(new RawPaymentRow(paymentId, orderId, gatewayRef, type, amount, ts, status));
+
+            result.add(new RawPaymentRow(
+                    paymentId, orderId, gatewayRef, type, amount, timestamp, status));
         }
         return result;
     }
