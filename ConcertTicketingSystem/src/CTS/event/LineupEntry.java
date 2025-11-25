@@ -7,12 +7,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class LineupEntry {
-    private int position;
+    private int eventId;   // owning Event's ID 
+    private int position;  // running order (1 = opening act)
     private String notes;
-    private Artist artist;
 
-    
-    private int eventId;   
+    private Artist artist;
 
     public LineupEntry(int eventId, int position, String notes, Artist artist) {
         this.eventId = eventId;
@@ -49,8 +48,9 @@ public class LineupEntry {
         this.artist = artist;
     }
 
-    // ===== CSV support =====
-    // Format: eventId,position,artistId,notes
+    // ================= CSV SUPPORT =================
+    // CSV format:
+    // eventId,position,artistId,notes
 
     public String toCsvRow() {
         int artistId = (artist != null) ? artist.getArtistId() : -1;
@@ -58,15 +58,6 @@ public class LineupEntry {
                 position + "," +
                 artistId + "," +
                 escape(notes);
-    }
-
-    
-    public static LineupEntry fromCsvRow(String line, Artist artist) {
-        String[] parts = line.split(",", 4);
-        int eventId = Integer.parseInt(parts[0]);
-        int pos = Integer.parseInt(parts[1]);
-        String notes = parts.length > 3 ? unescape(parts[3]) : "";
-        return new LineupEntry(eventId, pos, notes, artist);
     }
 
     
@@ -90,13 +81,15 @@ public class LineupEntry {
             return result;
         }
         for (String line : Files.readAllLines(path)) {
-            if (line.trim().isEmpty() || line.startsWith("#")) continue;
+            if (line.trim().isEmpty() || line.startsWith("#")) {
+                continue;
+            }
             String[] parts = line.split(",", 4);
             int eventId = Integer.parseInt(parts[0]);
-            int pos = Integer.parseInt(parts[1]);
+            int position = Integer.parseInt(parts[1]);
             int artistId = Integer.parseInt(parts[2]);
             String notes = parts.length > 3 ? unescape(parts[3]) : "";
-            result.add(new RawLineupRow(eventId, pos, artistId, notes));
+            result.add(new RawLineupRow(eventId, position, artistId, notes));
         }
         return result;
     }
@@ -128,5 +121,5 @@ public class LineupEntry {
                 ", artist=" + (artist != null ? artist.getStageName() : "null") +
                 '}';
     }
-
+    
 }

@@ -1,6 +1,12 @@
 package CTS.user;
-
 import CTS.event.Event;
+//import CTS.seating.PricingTier;
+//import CTS.seating.Section;
+//import CTS.misc.RefundRequest;
+//
+//import java.util.ArrayList;
+//
+//import CTS.event.Event;
 import CTS.enums.EventStatus;
 import CTS.event.Artist;
 import CTS.event.LineupEntry;
@@ -13,6 +19,7 @@ import java.util.List;
  * Has permissions to create and manage events, artists, and lineups.
  */
 public class VenueAdmin extends User {
+
 
    
 

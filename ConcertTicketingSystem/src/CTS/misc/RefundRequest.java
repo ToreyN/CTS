@@ -7,7 +7,18 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+/**
+ * Refund request for an Order.
+ * Matches the domain model:
+ *  - refundId : int
+ *  - reason : String
+ *  - createdAt : Date
+ *  - processedAt : Date
+ *  - status : RefundStatus
+ *
+ */
 public class RefundRequest {
+
     private int refundId;
     private String reason;
     private Date createdAt;
@@ -39,6 +50,10 @@ public class RefundRequest {
         return reason;
     }
 
+    public void setReason(String reason) {
+        this.reason = reason;
+    }
+
     public Date getCreatedAt() {
         return createdAt;
     }
@@ -59,11 +74,18 @@ public class RefundRequest {
         return refundTxn;
     }
 
+    public void setRefundTxn(PaymentTransaction refundTxn) {
+        this.refundTxn = refundTxn;
+    }
+
     public VenueAdmin getProcessedBy() {
         return processedBy;
     }
 
-    
+    public void setProcessedBy(VenueAdmin processedBy) {
+        this.processedBy = processedBy;
+    }
+
 
     public void approve(VenueAdmin admin) {
         this.status = RefundStatus.APPROVED;
@@ -75,11 +97,11 @@ public class RefundRequest {
         this.status = RefundStatus.DENIED;
         this.processedAt = new Date();
         this.processedBy = admin;
-        this.reason = reason;
+        this.reason = reason; // store denial reason
     }
 
-    // ===== CSV support =====
-    // Format:
+    // ===== CSV SUPPORT =====
+    // CSV format:
     // refundId,orderId,reason,createdAtMillis,processedAtMillis,status,adminUserId,refundTxnId
 
     public String toCsvRow() {
@@ -99,6 +121,7 @@ public class RefundRequest {
                 refundTxnId;
     }
 
+   
     public static class RawRefundRow {
         public final int refundId;
         public final int orderId;
@@ -109,9 +132,14 @@ public class RefundRequest {
         public final int adminUserId;
         public final int refundTxnId;
 
-        public RawRefundRow(int refundId, int orderId, String reason,
-                            Date createdAt, Date processedAt,
-                            RefundStatus status, int adminUserId, int refundTxnId) {
+        public RawRefundRow(int refundId,
+                            int orderId,
+                            String reason,
+                            Date createdAt,
+                            Date processedAt,
+                            RefundStatus status,
+                            int adminUserId,
+                            int refundTxnId) {
             this.refundId = refundId;
             this.orderId = orderId;
             this.reason = reason;
@@ -129,7 +157,9 @@ public class RefundRequest {
             return result;
         }
         for (String line : Files.readAllLines(path)) {
-            if (line.trim().isEmpty() || line.startsWith("#")) continue;
+            if (line.trim().isEmpty() || line.startsWith("#")) {
+                continue;
+            }
             String[] parts = line.split(",", 8);
             int refundId = Integer.parseInt(parts[0]);
             int orderId = Integer.parseInt(parts[1]);
@@ -143,8 +173,10 @@ public class RefundRequest {
             Date createdAt = createdMillis == 0L ? null : new Date(createdMillis);
             Date processedAt = processedMillis == 0L ? null : new Date(processedMillis);
 
-            result.add(new RawRefundRow(refundId, orderId, reason,
-                    createdAt, processedAt, status, adminUserId, refundTxnId));
+            result.add(new RawRefundRow(
+                    refundId, orderId, reason,
+                    createdAt, processedAt, status,
+                    adminUserId, refundTxnId));
         }
         return result;
     }

@@ -1,14 +1,12 @@
 package CTS.event;
 
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import CTS.enums.EventStatus; // Import the enum
-
+import CTS.enums.EventStatus; 
 
 public class Event {
     private int eventId;
@@ -41,6 +39,7 @@ public class Event {
         return eventId;
     }
 
+    
     public void setEventId(int eventId) {
         this.eventId = eventId;
     }
@@ -74,10 +73,13 @@ public class Event {
     }
 
     public void addLineupEntry(LineupEntry entry) {
-        lineup.add(entry);
+        if (entry != null) {
+            lineup.add(entry);
+        }
     }
 
     
+
     public void publish() {
         if (status == EventStatus.DRAFT) {
             status = EventStatus.PUBLISHED;
@@ -101,8 +103,8 @@ public class Event {
         return capacity;
     }
 
-    // ===== CSV support =====
-    // Format:
+    // ================= CSV SUPPORT =================
+    // CSV format:
     // eventId,name,startDateTimeMillis,venueName,description,capacity,status
 
     public String toCsvRow() {
@@ -135,7 +137,9 @@ public class Event {
             return result;
         }
         for (String line : Files.readAllLines(path)) {
-            if (line.trim().isEmpty() || line.startsWith("#")) continue;
+            if (line.trim().isEmpty() || line.startsWith("#")) {
+                continue;
+            }
             result.add(fromCsvRow(line));
         }
         return result;
@@ -169,6 +173,13 @@ public class Event {
                 ", capacity=" + capacity +
                 ", status=" + status +
                 '}';
+    }
+
+    /**
+     * Helper to sort lineup in-place by position (1, 2, 3, ...).
+     */
+    public void sortLineupByPosition() {
+        lineup.sort(Comparator.comparingInt(LineupEntry::getPosition));
     }
 
 }

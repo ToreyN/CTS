@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Artist {
-    private int artistId;
+   private int artistId;
     private String stageName;
     private String genre;
 
@@ -41,7 +41,7 @@ public class Artist {
         this.genre = genre;
     }
 
-    // ===== CSV support =====
+    // ================= CSV SUPPORT =================
 
     /**
      * CSV format:
@@ -67,7 +67,9 @@ public class Artist {
             return result;
         }
         for (String line : Files.readAllLines(path)) {
-            if (line.trim().isEmpty() || line.startsWith("#")) continue;
+            if (line.trim().isEmpty() || line.startsWith("#")) {
+                continue;
+            }
             result.add(fromCsvRow(line));
         }
         return result;

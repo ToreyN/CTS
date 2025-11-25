@@ -1,4 +1,15 @@
+// i have a lot of a few placeholders in the methods, 
+// confused on the our method of storing user data, do we plan on just using ArrayLists 
+// or are we going to write and read from a file?
+
+
 package CTS.user;
+import CTS.event.Event;
+import CTS.booking.Order;
+import CTS.misc.RefundRequest; // Needed for the requestRefund method
+
+import java.util.ArrayList;
+import java.util.List;
 
 import CTS.event.Event;
 import CTS.enums.EventStatus; // Import the enum
@@ -11,6 +22,7 @@ import java.util.List;
 import java.util.stream.Collectors; // For filtering
 
 public class ConcertGoer extends User {
+
 
    
 
