@@ -1,4 +1,6 @@
 package CTS.booking;
+import CTS.misc.*;
+import CTS.enums.*;
 
 class SeatHold {
 	private int holdID;
@@ -17,5 +19,5 @@ class SeatHold {
 	
 	public Order convertToOrder() {
 		
-	}s
+	}
 }

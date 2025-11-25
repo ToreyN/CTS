@@ -1,5 +1,6 @@
 package CTS.booking;
 import java.util.*;
+import CTS.enums.*;
 import CTS.misc.*;
 import CTS.misc.Date;
 
