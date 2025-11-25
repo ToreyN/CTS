@@ -1,11 +1,14 @@
 package CTS.event;
 
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import CTS.enums.EventStatus; // Import the enum
+
 
 public class Event {
     private int eventId;
