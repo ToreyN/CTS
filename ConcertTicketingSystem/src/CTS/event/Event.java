@@ -6,7 +6,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import CTS.misc.EventStatus;
+import CTS.enums.EventStatus;
 
 public class Event {
     private int eventId;
