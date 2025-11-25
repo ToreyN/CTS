@@ -74,7 +74,7 @@ public class Main {
         System.out.println("Goodbye.");
     }
 
-    // ========================= LOAD / SAVE =========================
+    //  LOAD / SAVE 
 
     private void loadAll() {
         try {
@@ -189,7 +189,7 @@ public class Main {
         }
     }
 
-    // ========================= USER REGISTRATION / LOGIN =========================
+    //  USER REGISTRATION / LOGIN 
 
     private void registerUser() {
         System.out.println("--- Register User ---");
@@ -235,7 +235,7 @@ public class Main {
         }
     }
 
-    // ========================= ADMIN MENU =========================
+    //  ADMIN MENU 
 
     private void adminMenu(VenueAdmin admin) {
         boolean done = false;
@@ -260,7 +260,7 @@ public class Main {
         }
     }
 
-    // ========================= GOER MENU =========================
+    //  GOER MENU 
 
     private void goerMenu(ConcertGoer goer) {
         boolean done = false;
@@ -287,7 +287,7 @@ public class Main {
         }
     }
 
-    // ========================= EVENT / ARTIST / LINEUP HELPERS =========================
+    //  EVENT / ARTIST / LINEUP HELPERS 
 
     private void listEvents(List<Event> list) {
         if (list.isEmpty()) {
@@ -436,7 +436,7 @@ public class Main {
         System.out.println("Lineup entry added.");
     }
 
-    // ========================= INPUT HELPERS =========================
+    //  INPUT HELPERS 
 
     private int readInt(String prompt) {
         while (true) {
