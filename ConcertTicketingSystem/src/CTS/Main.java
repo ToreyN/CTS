@@ -3,11 +3,12 @@ package CTS;
 import CTS.user.*;
 import CTS.event.*;
 import CTS.misc.*;
-import CTS.booking.*; 
-import CTS.enums.PaymentType;
+import CTS.booking.*;
+import CTS.enums.PaymentType; // --- ENSURE THIS IS IMPORTED ---
 import CTS.enums.EventStatus;
 import CTS.enums.PaymentStatus;
 import CTS.enums.RefundStatus;
+import CTS.enums.OrderStatus;
 import CTS.user.userDatabase;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -16,7 +17,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Date;
-import java.util.stream.Collectors; 
+import java.util.stream.Collectors;
 
 /**
  *
@@ -27,7 +28,8 @@ import java.util.stream.Collectors;
  * - LineupEntry   -> lineup.csv
  * - Order         -> orders.csv
  * - Ticket        -> tickets.csv
- * - PaymentTransaction / RefundRequest
+ * - PaymentTransaction -> payments.csv
+ * - RefundRequest -> refunds.csv
  */
 public class Main {
 
@@ -37,8 +39,8 @@ public class Main {
     private static final Path LINEUP_FILE   = Paths.get("lineup.csv");
     private static final Path PAYMENTS_FILE = Paths.get("payments.csv");
     private static final Path REFUNDS_FILE  = Paths.get("refunds.csv");
-    private static final Path ORDERS_FILE   = Paths.get("orders.csv");  // --- NEW ---
-    private static final Path TICKETS_FILE  = Paths.get("tickets.csv"); // --- NEW ---
+    private static final Path ORDERS_FILE   = Paths.get("orders.csv");
+    private static final Path TICKETS_FILE  = Paths.get("tickets.csv");
 
     private final Scanner in = new Scanner(System.in);
 
@@ -49,16 +51,16 @@ public class Main {
     private final List<LineupEntry> lineupEntries = new ArrayList<>();
     private final List<PaymentTransaction> payments = new ArrayList<>();
     private final List<RefundRequest> refunds = new ArrayList<>();
-    private final List<Order> orders = new ArrayList<>();     // --- NEW ---
-    private final List<Ticket> tickets = new ArrayList<>();   // --- NEW ---
+    private final List<Order> orders = new ArrayList<>();
+    private final List<Ticket> tickets = new ArrayList<>();
 
     // --- ID GENERATORS ---
     private int nextEventId = 1;
     private int nextArtistId = 1;
     private int nextPaymentId = 1;
     private int nextRefundId = 1;
-    private int nextOrderId = 1;    // --- NEW ---
-    private int nextTicketId = 1;   // --- NEW ---
+    private int nextOrderId = 1;
+    private int nextTicketId = 1;
 
     public static void main(String[] args) {
         new Main().run();
@@ -81,7 +83,7 @@ public class Main {
             switch (choice) {
                 case 1 -> registerUser();
                 case 2 -> loginFlow();
-                case 3 -> listEvents(events, false); // false = not for booking
+                case 3 -> listEvents(events, false);
                 case 0 -> done = true;
                 default -> System.out.println("Invalid choice.");
             }
@@ -124,33 +126,7 @@ public class Main {
             System.err.println("Warning: could not load lineup.csv: " + e.getMessage());
         }
 
-        // --- Load Payments ---
-        try {
-            List<PaymentTransaction.RawPaymentRow> raw = PaymentTransaction.loadRawRows(PAYMENTS_FILE);
-            for (PaymentTransaction.RawPaymentRow r : raw) {
-                payments.add(new PaymentTransaction(
-                        r.paymentId, r.gatewayRef, r.type, r.amount, r.timestamp, r.status, null));
-                nextPaymentId = Math.max(nextPaymentId, r.paymentId + 1);
-            }
-        } catch (IOException e) {
-            System.err.println("Warning: could not load payments.csv: " + e.getMessage());
-        }
-
-        // --- Load Refunds ---
-        try {
-            List<RefundRequest.RawRefundRow> raw = RefundRequest.loadRawRows(REFUNDS_FILE);
-            for (RefundRequest.RawRefundRow r : raw) {
-                RefundRequest rr = new RefundRequest( r.refundId, null, r.createdAt, r.reason, r.status );
-                rr.setProcessedBy(null);
-                rr.setRefundTxn(null);
-                refunds.add(rr);
-                nextRefundId = Math.max(nextRefundId, r.refundId + 1);
-            }
-        } catch (IOException e) {
-            System.err.println("Warning: could not load refunds.csv: " + e.getMessage());
-        }
-        
-        // --- LOAD ORDERS & TICKETS ---
+        // --- LOAD ORDERS & TICKETS (Must be loaded before Payments/Refunds) ---
         try {
             orders.addAll(Order.loadFromCsv(ORDERS_FILE));
         } catch (IOException e) {
@@ -169,8 +145,46 @@ public class Main {
             nextTicketId = Math.max(nextTicketId, t.getTicketId() + 1);
         }
         
-        // --- Re-link objects (Orders, Tickets, etc.) ---
+        // --- Re-link Orders & Tickets (Must happen before loading payments/refunds) ---
         rebuildOrdersAndTickets();
+
+        // --- Load Payments ---
+        try {
+            List<PaymentTransaction.RawPaymentRow> raw = PaymentTransaction.loadRawRows(PAYMENTS_FILE);
+            for (PaymentTransaction.RawPaymentRow r : raw) {
+                Order order = findOrderById(r.orderId); // Find the loaded order
+                PaymentTransaction txn = new PaymentTransaction(
+                        r.paymentId, r.gatewayRef, r.type, r.amount, r.timestamp, r.status, order);
+                
+                if (order != null) {
+                    order.setPayment(txn); // Link payment to its order
+                }
+                
+                payments.add(txn);
+                nextPaymentId = Math.max(nextPaymentId, r.paymentId + 1);
+            }
+        } catch (IOException e) {
+            System.err.println("Warning: could not load payments.csv: " + e.getMessage());
+        }
+        
+        // --- Load Refunds (Now can be linked to Orders) ---
+        try {
+            List<RefundRequest.RawRefundRow> raw = RefundRequest.loadRawRows(REFUNDS_FILE);
+            for (RefundRequest.RawRefundRow r : raw) {
+                Order order = findOrderById(r.orderId); // Find the loaded order
+                RefundRequest rr = new RefundRequest( r.refundId, order, r.createdAt, r.reason, r.status );
+                
+                if (r.adminUserId > 0) {
+                    rr.setProcessedBy((VenueAdmin) userDb.getUserById(r.adminUserId));
+                }
+                rr.setRefundTxn(null); // Not linking refund payments in this prototype
+                
+                refunds.add(rr);
+                nextRefundId = Math.max(nextRefundId, r.refundId + 1);
+            }
+        } catch (IOException e) {
+            System.err.println("Warning: could not load refunds.csv: " + e.getMessage());
+        }
     }
 
     private void saveAll() {
@@ -194,7 +208,6 @@ public class Main {
             RefundRequest.saveToCsv(REFUNDS_FILE, refunds);
         } catch (IOException e) { System.err.println("Error saving refunds.csv: " + e.getMessage()); }
 
-        // --- SAVE ORDERS & TICKETS ---
         try {
             Order.saveToCsv(ORDERS_FILE, orders);
         } catch (IOException e) { System.err.println("Error saving orders.csv: " + e.getMessage()); }
@@ -203,7 +216,6 @@ public class Main {
             Ticket.saveToCsv(TICKETS_FILE, tickets);
         } catch (IOException e) { System.err.println("Error saving tickets.csv: " + e.getMessage()); }
 
-        // Users are saved by userDatabase
         userDb.saveToFile();
     }
 
@@ -227,11 +239,7 @@ public class Main {
         }
     }
 
-    /**
-     * Links all loaded tickets to their parent orders after loading from CSV.
-     */
     private void rebuildOrdersAndTickets() {
-        // Create a lookup map for fast access
         Map<Integer, Order> orderById = new HashMap<>();
         for (Order o : orders) {
             orderById.put(o.getOrderId(), o);
@@ -240,7 +248,6 @@ public class Main {
         for (Ticket t : tickets) {
             Order parentOrder = orderById.get(t.getOrderId());
             if (parentOrder != null) {
-                // Add the ticket to its order's shopping cart
                 parentOrder.addTicket(t);
             } else {
                 System.err.println("Warning: Ticket " + t.getTicketId() + " references missing order " + t.getOrderId());
@@ -303,15 +310,16 @@ public class Main {
             System.out.println("2) Create new event");
             System.out.println("3) Publish / cancel event");
             System.out.println("4) Manage artists and lineup");
-            // TODO: Add "Process Refunds" option
+            System.out.println("5) Process Pending Refunds");
             System.out.println("0) Logout");
 
             int choice = readInt("Choose option: ");
             switch (choice) {
-                case 1 -> listEvents(events, false); // false = not for booking
+                case 1 -> listEvents(events, false);
                 case 2 -> createEvent();
                 case 3 -> updateEventStatus();
                 case 4 -> manageLineup();
+                case 5 -> processRefundFlow(admin);
                 case 0 -> done = true;
                 default -> System.out.println("Invalid choice.");
             }
@@ -329,13 +337,14 @@ public class Main {
             System.out.println("ConcertGoer Menu (" + goer.getName() + ")");
             System.out.println("1) Browse / Book Tickets");
             System.out.println("2) View My Bookings");
-            // TODO: Add "Request Refund" option
+            System.out.println("3) Request Refund");
             System.out.println("0) Logout");
 
             int choice = readInt("Choose option: ");
             switch (choice) {
                 case 1 -> bookTicketFlow(goer);
                 case 2 -> viewMyBookings(goer);
+                case 3 -> requestRefundFlow(goer);
                 case 0 -> done = true;
                 default -> System.out.println("Invalid choice.");
             }
@@ -343,35 +352,29 @@ public class Main {
     }
     
     // =============================================
-    //  BOOKING FLOW
+    //  BOOKING & REFUND FLOWS
     // =============================================
     
+    /**
+     * --- UPDATED with Payment Simulation ---
+     */
     private void bookTicketFlow(ConcertGoer goer) {
         System.out.println("--- Browse Events ---");
         
-        // 1. Filter for PUBLISHED events
-        List<Event> published = new ArrayList<>();
-        for (Event e : events) {
-            if (e.getStatus() == EventStatus.PUBLISHED) {
-                published.add(e);
-            }
-        }
+        List<Event> published = events.stream()
+            .filter(e -> e.getStatus() == EventStatus.PUBLISHED)
+            .collect(Collectors.toList());
         
         if (published.isEmpty()) {
             System.out.println("Sorry, there are no events to book right now.");
             return;
         }
-
-        // 2. Show events *for booking* (with price and availability)
         listEvents(published, true);
         
-        // 3. Get user choice
         int eventId = readInt("Enter Event ID to book (or 0 to cancel): ");
-        
-        // --- NEW --- Check for cancel option
         if (eventId == 0) {
             System.out.println("Canceling booking.");
-            return; // Go back to the goerMenu
+            return;
         }
         
         Event event = findEventById(eventId);
@@ -380,7 +383,6 @@ public class Main {
             return;
         }
 
-        // 4. Check availability
         if (event.getAvailableSeats() <= 0) {
             System.out.println("Sorry, this event is SOLD OUT.");
             return;
@@ -391,8 +393,6 @@ public class Main {
         System.out.println("Tickets available: " + event.getAvailableSeats());
         
         int numTickets = readInt("How many tickets would you like to buy? (0 to cancel) ");
-        
-        // --- NEW --- Check for cancel option
         if (numTickets <= 0) {
             System.out.println("Booking canceled.");
             return;
@@ -408,35 +408,65 @@ public class Main {
         
         // 6. Create Tickets and add to Order
         for (int i = 0; i < numTickets; i++) {
-            // In a real system, we'd find a specific seat. Here, we just fake it.
             String seatLabel = "General Admission, Seat " + (event.getTicketsSold() + 1);
             
             Ticket newTicket = new Ticket(
                 nextTicketId++,
                 newOrder.getOrderId(),
                 event.getEventId(),
-                event.getBasePrice(), // Use the event's base price
+                event.getBasePrice(),
                 seatLabel
             );
             
-            event.sellTicket(); // This increments the event's 'ticketsSold' counter
+            event.sellTicket(); // Temporarily "sell" ticket
             newOrder.addTicket(newTicket);
-            tickets.add(newTicket); // Add to master ticket list
+            tickets.add(newTicket); // Add to master list (temporarily)
         }
+        
+        // --- 7. NEW PAYMENT SIMULATION ---
+        System.out.println("\nOrder Total: " + newOrder.getTotalAmount());
+        String fakeCard = readLine("Enter 16-digit card number to pay (or 0 to cancel): ");
+        
+        if (fakeCard.equals("0") || fakeCard.isBlank()) {
+            System.out.println("Payment canceled. Order voided.");
+            // We need to "un-sell" the tickets
+            for (int i = 0; i < numTickets; i++) {
+                event.unSellTicket(); 
+                tickets.remove(tickets.size() - 1); // Remove tickets we just added
+            }
+            return;
+        }
+        
+        System.out.println("Processing payment...");
+        
+        // Create the successful payment transaction
+        PaymentTransaction txn = new PaymentTransaction(
+            nextPaymentId++,
+            "txn_" + UUID.randomUUID().toString().substring(0, 8), // Fake gateway ref
+            PaymentType.CHARGE, // <-- Use CHARGE from your enum
+            newOrder.getTotalAmount(),
+            new Date(),
+            PaymentStatus.SUCCESS,
+            newOrder // Link the order
+        );
+        
+        payments.add(txn); // Add to master list
+        newOrder.setPayment(txn); // Link payment to order (this also sets status to CONFIRMED)
+        
+        // --- END NEW PAYMENT SIMULATION ---
         
         orders.add(newOrder); // Add to master order list
         
-        // 7. Success!
+        // 8. Success!
         System.out.println("\n--- Booking Confirmed! ---");
+        System.out.println("Payment Successful (Ref: " + txn.getGatewayRef() + ")");
         System.out.println("Order ID: " + newOrder.getOrderId());
-        System.out.println("Total Cost: " + newOrder.getTotalAmount());
         System.out.println("You booked " + numTickets + " ticket(s) for " + event.getName() + ".");
     }
     
     private void viewMyBookings(ConcertGoer goer) {
         System.out.println("--- My Bookings ---");
         
-        // Use Java Streams to filter the master list
         List<Order> myOrders = orders.stream()
             .filter(order -> order.getUserId() == goer.getUserId())
             .collect(Collectors.toList());
@@ -454,12 +484,10 @@ public class Main {
             System.out.println("Status: " + order.getStatus());
             System.out.println("Tickets in this order:");
             
-            // Check if tickets list is null or empty, which can happen
             if (order.getTickets() == null || order.getTickets().isEmpty()) {
-                System.out.println("  (Error: Tickets not loaded correctly)");
+                System.out.println("  (No tickets found for this order)");
             } else {
                 for (Ticket ticket : order.getTickets()) {
-                    // Find the event for this ticket
                     Event event = findEventById(ticket.getEventId());
                     String eventName = (event != null) ? event.getName() : "Unknown Event";
                     
@@ -472,6 +500,120 @@ public class Main {
         System.out.println("---------------------------------");
     }
 
+    private void requestRefundFlow(ConcertGoer goer) {
+        System.out.println("--- Request a Refund ---");
+        
+        viewMyBookings(goer);
+        
+        List<Order> myOrders = orders.stream()
+            .filter(order -> order.getUserId() == goer.getUserId())
+            .collect(Collectors.toList());
+
+        if (myOrders.isEmpty()) {
+            return;
+        }
+
+        int orderId = readInt("Enter Order ID to refund (or 0 to cancel): ");
+        
+        if (orderId == 0) {
+            System.out.println("Canceling refund request.");
+            return;
+        }
+        
+        Order orderToRefund = findOrderById(orderId);
+        
+        if (orderToRefund == null || orderToRefund.getUserId() != goer.getUserId()) {
+            System.out.println("Error: Invalid Order ID.");
+            return;
+        }
+        
+        if (orderToRefund.getStatus() == OrderStatus.REFUNDED) {
+            System.out.println("Error: This order has already been refunded.");
+            return;
+        }
+        
+        if (orderToRefund.getStatus() == OrderStatus.CANCELED) {
+            System.out.println("Error: This order was canceled.");
+            return;
+        }
+
+        // Check if a refund is already pending
+        boolean isPending = refunds.stream()
+            .anyMatch(rr -> rr.getOrder().getOrderId() == orderId && rr.getStatus() == RefundStatus.PENDING);
+        
+        if (isPending) {
+            System.out.println("Error: A refund request is already pending for this order.");
+            return;
+        }
+        
+        String reason = readLine("Reason for refund: ");
+        
+        RefundRequest newRequest = new RefundRequest(
+            nextRefundId++,
+            orderToRefund,
+            new Date(),
+            reason,
+            RefundStatus.PENDING
+        );
+        
+        refunds.add(newRequest);
+        
+        System.out.println("Refund request submitted for Order " + orderToRefund.getOrderId() + ".");
+        System.out.println("An admin will review your request.");
+    }
+
+    private void processRefundFlow(VenueAdmin admin) {
+        System.out.println("--- Process Pending Refunds ---");
+        
+        List<RefundRequest> pending = refunds.stream()
+            .filter(r -> r.getStatus() == RefundStatus.PENDING)
+            .collect(Collectors.toList());
+            
+        if (pending.isEmpty()) {
+            System.out.println("There are no pending refunds to process.");
+            return;
+        }
+        
+        System.out.println("Pending Requests:");
+        for (RefundRequest r : pending) {
+            System.out.println("-------------------------");
+            System.out.println("Refund ID: " + r.getRefundId());
+            System.out.println("Order ID: " + r.getOrder().getOrderId());
+            System.out.println("Amount: " + r.getOrder().getTotalAmount());
+            System.out.println("User Reason: " + r.getReason());
+            System.out.println("Order Date: " + r.getOrder().getCreatedAt());
+        }
+        System.out.println("-------------------------");
+        
+        int refundId = readInt("Enter Refund ID to process (or 0 to cancel): ");
+        if (refundId == 0) return;
+        
+        RefundRequest request = findRefundById(refundId);
+        
+        if (request == null || request.getStatus() != RefundStatus.PENDING) {
+            System.out.println("Error: Invalid Refund ID or request is not pending.");
+            return;
+        }
+        
+        System.out.println("Processing Refund ID: " + request.getRefundId());
+        System.out.println("1) APPROVE");
+        System.out.println("2) DENY");
+        System.out.println("0) Cancel");
+        int choice = readInt("Choose option: ");
+        
+        if (choice == 1) {
+            request.approve(admin);
+            request.getOrder().markRefunded();
+            System.out.println("Refund " + request.getRefundId() + " has been APPROVED.");
+        } else if (choice == 2) {
+            String reason = readLine("Reason for denial: ");
+            request.deny(admin, reason);
+            System.out.println("Refund " + request.getRefundId() + " has been DENIED.");
+        } else {
+            System.out.println("No action taken.");
+        }
+    }
+    
     // =============================================
     //  EVENT / ARTIST / LINEUP HELPERS
     // =============================================
@@ -487,7 +629,6 @@ public class Main {
                     + " @ " + e.getVenueName();
             
             if (forBooking) {
-                // Show booking-related info
                 String availability;
                 if (e.getAvailableSeats() <= 0) {
                     availability = "SOLD OUT";
@@ -496,7 +637,6 @@ public class Main {
                 }
                 System.out.println(details + " | Price: " + e.getBasePrice() + " | " + availability);
             } else {
-                // Show admin-related info
                 System.out.println(details + " | status=" + e.getStatus()
                     + " | capacity=" + e.getCapacity());
             }
@@ -510,9 +650,8 @@ public class Main {
         String desc = readLine("Description: ");
         int capacity = readInt("Capacity: ");
         
-        // --- NEW ---
         double price = readDouble("Base ticket price (e.g., 49.99): ");
-        Money basePrice = new Money(price, "USD"); // Defaulting to USD
+        Money basePrice = new Money(price, "USD");
 
         Date startDate = null;
         String dateStr = readLine("Start date/time (yyyy-MM-dd HH:mm, blank for null): ");
@@ -524,7 +663,6 @@ public class Main {
             }
         }
 
-        // --- CONSTRUCTOR CALL UPDATED ---
         Event event = new Event(
                 nextEventId++,
                 name,
@@ -533,7 +671,7 @@ public class Main {
                 desc,
                 capacity,
                 EventStatus.DRAFT,
-                basePrice // <-- Pass the new basePrice
+                basePrice
         );
         events.add(event);
         System.out.println("Created event with id=" + event.getEventId());
@@ -564,6 +702,20 @@ public class Main {
     private Event findEventById(int id) {
         for (Event e : events) {
             if (e.getEventId() == id) return e;
+        }
+        return null;
+    }
+    
+    private Order findOrderById(int id) {
+        for (Order o : orders) {
+            if (o.getOrderId() == id) return o;
+        }
+        return null;
+    }
+    
+    private RefundRequest findRefundById(int id) {
+        for (RefundRequest r : refunds) {
+            if (r.getRefundId() == id) return r;
         }
         return null;
     }
@@ -652,7 +804,6 @@ public class Main {
         }
     }
     
-    // --- NEW HELPER METHOD ---
     private double readDouble(String prompt) {
         while (true) {
             System.out.print(prompt);

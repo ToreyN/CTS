@@ -8,6 +8,7 @@ import java.util.Date;
 import java.util.List;
 
 import CTS.misc.Money;
+import CTS.misc.PaymentTransaction;
 import CTS.enums.OrderStatus;
 
 public class Order {
@@ -16,6 +17,7 @@ public class Order {
     private Date createdAt;
     private Money totalAmount;
     private OrderStatus status;
+    private PaymentTransaction payment;
 
     // This is a temporary field, not saved to CSV.
     // It gets rebuilt by Main.java's rebuildOrdersAndTickets() method.
@@ -96,7 +98,13 @@ public class Order {
         return sum;
     }
 
-   
+    public void setPayment(PaymentTransaction payment) {
+        this.payment = payment;
+        if (payment != null) {
+            this.status = OrderStatus.CONFIRMED; // Update status on successful payment
+        }
+    }
+    
      //Adds a ticket to the order and updates the total price.
      
     public void addTicket(Ticket ticket) {

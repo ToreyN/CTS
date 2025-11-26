@@ -133,6 +133,15 @@ public class Event {
         }
     }
 
+   
+     // Reverses a ticket sale if payment fails or is canceled.
+    
+    public void unSellTicket() {
+        if (ticketsSold > 0) {
+            ticketsSold--;
+        }
+    }
+    
     public void publish() {
         if (status == EventStatus.DRAFT) {
             status = EventStatus.PUBLISHED;

@@ -10,6 +10,7 @@ import CTS.event.Event;
 import CTS.enums.EventStatus;
 import CTS.event.Artist;
 import CTS.event.LineupEntry;
+import CTS.misc.Money; // <-- 1. ADDED IMPORT
 
 import java.util.Date;
 import java.util.List;
@@ -63,9 +64,10 @@ public class VenueAdmin extends User {
      * @param venue Name of the venue.
      * @param description Event description.
      * @param capacity Total capacity.
+     * @param basePrice The base price for a ticket. // <-- 2. ADDED PARAMETER
      * @return The newly created Event object.
      */
-    public Event createEvent(List<Event> allEvents, int newEventId, String name, Date startDate, String venue, String description, int capacity) {
+    public Event createEvent(List<Event> allEvents, int newEventId, String name, Date startDate, String venue, String description, int capacity, Money basePrice) { // <-- 2. ADDED PARAMETER
         System.out.println(getName() + " is creating a new event: " + name);
         
         Event newEvent = new Event(
@@ -75,7 +77,8 @@ public class VenueAdmin extends User {
             venue,
             description,
             capacity,
-            EventStatus.DRAFT // New events always start as DRAFT
+            EventStatus.DRAFT, // New events always start as DRAFT
+            basePrice          // <-- 3. PASSED PARAMETER TO CONSTRUCTOR
         );
         
         allEvents.add(newEvent);
