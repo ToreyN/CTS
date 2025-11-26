@@ -6,7 +6,12 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
+import CTS.user.VenueAdmin;
+import CTS.enums.PaymentType;
+import CTS.enums.PaymentStatus;
+import CTS.enums.RefundStatus;
+import CTS.enums.OrderStatus;
+import CTS.booking.Order;
 /**
  * Refund request for an Order.
  * Matches the domain model:
@@ -30,11 +35,7 @@ public class RefundRequest {
     private PaymentTransaction refundTxn;
     private VenueAdmin processedBy;
 
-    public RefundRequest(int refundId,
-                         String reason,
-                         Date createdAt,
-                         RefundStatus status,
-                         Order order) {
+    public RefundRequest(int refundId, Order order, Date createdAt, String reason, RefundStatus status) {
         this.refundId = refundId;
         this.reason = reason;
         this.createdAt = createdAt;

@@ -28,9 +28,9 @@ public class Money {
         this.amount = amount;
     }
 
-    /**
-     * Inline serialization for CSV columns, ex. "50.0:USD".
-     */
+    
+     // Inline serialization for CSV columns, ex. "50.0:USD".
+     
     public String toInlineString() {
         String cur = (currency == null) ? "" : currency.replace(":", "");
         return amount + ":" + cur;

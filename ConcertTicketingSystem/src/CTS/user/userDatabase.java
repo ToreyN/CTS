@@ -52,7 +52,7 @@ public class userDatabase {
                 }
                 
                 // Use the static helper from User.java to parse the line
-                User user = User.fromCSVString(line); 
+                User user = User.fromCsvRow(line);
                 
                 if (user != null) {
                     this.users.add(user);
@@ -78,7 +78,7 @@ public class userDatabase {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
             for (User user : this.users) {
                 // Use the helper method from ConcertGoer/VenueAdmin
-                writer.write(user.toCSVString());
+            	writer.write(user.toCsvRow());
                 writer.newLine(); // Add a new line for the next user
             }
         } catch (IOException e) {
@@ -92,7 +92,7 @@ public class userDatabase {
         User userToFind = getUserByEmail(email);
         
         // 2. Check if user exists AND password is correct
-        if (userToFind != null && userToFind.authenticate(password)) {
+        if (userToFind != null && userToFind.checkPassword(password)) {
             // Success!
             return userToFind; 
         }
