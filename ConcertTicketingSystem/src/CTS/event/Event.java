@@ -3,11 +3,13 @@ package CTS.event;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
-import CTS.enums.EventStatus; 
+import CTS.enums.EventStatus;
+import java.util.stream.Collectors;
 import CTS.misc.Money; // --- IMPORT ADDED ---
 
 public class Event {
@@ -83,6 +85,29 @@ public class Event {
     public List<LineupEntry> getLineup() {
         return lineup;
     }
+    
+   
+    
+    public static List<Event> getAllPublishedEvents() {
+        List<Event> list = new ArrayList<>();
+        try {
+            // Load all events from the default CSV file
+            Path path = Paths.get("events.csv");
+            List<Event> all = loadFromCsv(path);
+
+            for (Event e : all) {
+                if (e.getStatus() == EventStatus.PUBLISHED) {
+                    list.add(e);
+                }
+            }
+
+        } catch (Exception ex) {
+            System.err.println("Error loading events for GUI: " + ex.getMessage());
+        }
+
+        return list;
+    }
+
 
 
 //  Gets the base price for a ticket to this event.
@@ -130,6 +155,12 @@ public class Event {
             lineup.add(entry);
         }
     }
+    
+    public void setName(String name) { this.name = name; }
+    public void setVenue(String venue) { this.venueName = venue; }
+    public void setPrice(Money m) { this.basePrice = m; }
+    public void setDate(Date d) { this.startDateTime = d; }
+
 
    
      // Reverses a ticket sale if payment fails or is canceled.

@@ -25,11 +25,20 @@ import java.util.List;
 public class PaymentTransaction {
 
     private int paymentId;
+    
+    private static int NEXT_ID = 1;
+
+    public static int nextId() {
+        return NEXT_ID++;
+    }
+
     private String gatewayRef;
     private PaymentType type;
     private Money amount;
     private Date timestamp;
     private PaymentStatus status;
+    
+    
 
     
     private Order order;
@@ -172,8 +181,16 @@ public class PaymentTransaction {
             Date timestamp = millis == 0L ? null : new Date(millis);
             PaymentStatus status = PaymentStatus.valueOf(parts[6]);
 
-            result.add(new RawPaymentRow(
-                    paymentId, orderId, gatewayRef, type, amount, timestamp, status));
+            // Create row object
+            RawPaymentRow row = new RawPaymentRow(
+                    paymentId, orderId, gatewayRef, type, amount, timestamp, status);
+
+            result.add(row);
+
+            // ⭐ UPDATE NEXT_ID HERE
+            if (paymentId >= NEXT_ID) {
+                NEXT_ID = paymentId + 1;
+            }
         }
         return result;
     }

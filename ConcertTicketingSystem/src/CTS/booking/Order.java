@@ -33,7 +33,13 @@ public class Order {
         this.totalAmount = new Money(0.0, "USD");
     }
 
-    
+    public static Order findById(int id, List<Order> all) {
+        for (Order o : all) {
+            if (o.getOrderId() == id) return o;
+        }
+        return null;
+    }
+
      // Constructor for a new order, linking it to a user.
      
     public Order(int orderId, int userId) { 
