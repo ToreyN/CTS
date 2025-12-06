@@ -1,0 +1,3 @@
+# eventId,name,startDateTimeMillis,venueName,description,capacity,status,priceInline,ticketsSold
+1,Weezer,1740139200000,TCC,Weezer Blue Album Anniversary tour,300,PUBLISHED,20.0:USD,2
+2,Vampire Weekend,1744894800000,Gila River Arena,Only God Is Above Us tour,400,PUBLISHED,30.0:USD,0
