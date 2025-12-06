@@ -2,7 +2,7 @@ package CTS.booking;
 
 import java.util.Date;
 
-import CTS.misc.HoldStatus;
+import CTS.enums.HoldStatus;
 
 class SeatHold {
     private int holdID;

@@ -1,59 +1,146 @@
 package CTS.user;
 import CTS.event.Event;
-import CTS.seating.PricingTier;
-import CTS.seating.Section;
-import CTS.misc.RefundRequest;
+//import CTS.seating.PricingTier;
+//import CTS.seating.Section;
+//import CTS.misc.RefundRequest;
+//
+//import java.util.ArrayList;
+//
+//import CTS.event.Event;
+import CTS.enums.EventStatus;
+import CTS.event.Artist;
+import CTS.event.LineupEntry;
+import CTS.misc.Money; 
 
-import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
+/**
+ * Represents a Venue Administrator user.
+ * Has permissions to create and manage events, artists, and lineups.
+ */
 public class VenueAdmin extends User {
 
-	public VenueAdmin(int userId, String name, String email, String plainPassword) {
-        // "super()" runs the constructor of the parent (User) class
-        super(userId, name, email, plainPassword);
+
+   
+
+    /**
+     * Constructor for a BRAND NEW admin user 
+     */
+    public VenueAdmin(int userId, String name, String email, String plainPassword) {
+        // Calls the public User constructor, which hashes the password
+        super(userId, name, email, plainPassword, "ADMIN"); 
     }
-	
-	public Event addEvent(Event eventData) {
-        System.out.println("Admin " + getName() + " is adding event: " + eventData.getName());
-        // Your real code:
-        // EventDatabase eventDB = new EventDatabase();
-        // return eventDB.createEvent(eventData);
-        return null;
+    
+    /**
+     * Constructor for LOADING an existing admin 
+     */
+    protected VenueAdmin(int userId, String name, String email, String passwordHash, LoadFrom tag) {
+        // Calls the protected User constructor, which assigns the pre-existing hash
+        super(userId, name, email, passwordHash, "ADMIN", tag);
     }
 
-    public void editEvent(Event event) {
-        System.out.println("Admin " + getName() + " is editing event: " + event.getName());
-        // final code:
-        // EventDatabase eventDB = new EventDatabase();
-        // eventDB.updateEvent(event);
-    }
     
-    public void setPricing(Event event, ArrayList<PricingTier> tiers) {
-        System.out.println("Admin " + getName() + " is setting pricing for " + event.getName());
-        // final code:
-        // SeatingDatabase seatingDB = new SeatingDatabase();
-        // seatingDB.setPricingForEvent(event, tiers);
+    // =========================================================================
+    //  ADMIN METHODS (from Main.java adminMenu)
+    // =========================================================================
+
+    /**
+     * Admin method to view all events, regardless of status.
+     * @param allEvents The main list of all events.
+     * @return The complete list of events.
+     */
+    public List<Event> viewAllEvents(List<Event> allEvents) {
+        System.out.println(getName() + " is viewing all events...");
+        return allEvents;
     }
 
-    public void reserveSeatBlocks(Event event, Section section, ArrayList<String> rows, String reason) {
-        System.out.println("Admin " + getName() + " is reserving seat blocks...");
-        // final code:
-        // SeatingDatabase seatingDB = new SeatingDatabase();
-        // seatingDB.reserveSeats(event, section, rows, reason);
+    /**
+     * Creates a new event and adds it to the main list.
+     * @param allEvents The main list of events (to add to).
+     * @param newEventId A unique ID provided by the Main class.
+     * @param name Name of the event.
+     * @param startDate The start date/time.
+     * @param venue Name of the venue.
+     * @param description Event description.
+     * @param capacity Total capacity.
+     * @param basePrice The base price for a ticket. 
+     * @return The newly created Event object.
+     */
+    public Event createEvent(List<Event> allEvents, int newEventId, String name, Date startDate, String venue, String description, int capacity, Money basePrice) { // <-- 2. ADDED PARAMETER
+        System.out.println(getName() + " is creating a new event: " + name);
+        
+        Event newEvent = new Event(
+            newEventId,
+            name,
+            startDate,
+            venue,
+            description,
+            capacity,
+            EventStatus.DRAFT, // New events always start as DRAFT
+            basePrice          //  PASSED PARAMETER TO CONSTRUCTOR
+        );
+        
+        allEvents.add(newEvent);
+        return newEvent;
     }
-    
-    public void processRefundRequest(RefundRequest request, boolean approved, String reason) {
-        System.out.println("Admin " + getName() + " is processing refund " + request.getRefundId());
-        // final code:
-        // RefundDatabase refundDB = new RefundDatabase();
-        // refundDB.processRequest(request, this, approved, reason);
+
+    /**
+     * Updates an event's status to PUBLISHED or CANCELED.
+     * @param event The event object to update.
+     * @param newStatus The desired new status (PUBLISHED or CANCELED).
+     */
+    public void updateEventStatus(Event event, EventStatus newStatus) {
+        if (newStatus == EventStatus.PUBLISHED) {
+            event.publish();
+            System.out.println("Event '" + event.getName() + "' has been published by " + getName());
+        } else if (newStatus == EventStatus.CANCELED) {
+            event.cancel();
+            System.out.println("Event '" + event.getName() + "' has been canceled by " + getName());
+        }
     }
-    
-    public ArrayList<RefundRequest> viewAllRefundRequests() {
-        System.out.println("Admin " + getName() + " is viewing refund requests...");
-        // final code:
-        // RefundDatabase refundDB = new RefundDatabase();
-        // return refundDB.getAllPendingRequests();
-        return new ArrayList<RefundRequest>();
+
+    /**
+     * Creates a new artist and adds them to the main artist list.
+     * @param allArtists The main list of artists (to add to).
+     * @param newArtistId A unique ID provided by the Main class.
+     * @param stageName The artist's stage name.
+     * @param genre The artist's genre.
+     * @return The newly created Artist object.
+     */
+    public Artist createArtist(List<Artist> allArtists, int newArtistId, String stageName, String genre) {
+        System.out.println(getName() + " is adding a new artist: " + stageName);
+        
+        Artist newArtist = new Artist(newArtistId, stageName, genre);
+        allArtists.add(newArtist);
+        return newArtist;
+    }
+
+    /**
+     * Adds an artist to an event's lineup.
+     * @param event The event to modify.
+     * @param artist The artist to add.
+     * @param allLineupEntries The main list of all lineup entries 
+     * @param position The artist's position in the lineup.
+     * @param notes Any notes about this performance.
+     * @return The newly created LineupEntry object
+     */
+    public LineupEntry addLineupEntry(Event event, Artist artist, List<LineupEntry> allLineupEntries, int position, String notes) {
+        System.out.println(getName() + " is adding " + artist.getStageName() + " to " + event.getName());
+        
+        LineupEntry newEntry = new LineupEntry(
+            event.getEventId(),
+            position,
+            notes,
+            artist
+        );
+        
+        // Add to the main list 
+        allLineupEntries.add(newEntry);
+        
+        //  add to the event's internal list (for easy lookup)
+        event.addLineupEntry(newEntry);
+        
+        return newEntry;
     }
 }
