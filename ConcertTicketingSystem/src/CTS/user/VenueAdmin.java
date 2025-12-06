@@ -10,7 +10,7 @@ import CTS.event.Event;
 import CTS.enums.EventStatus;
 import CTS.event.Artist;
 import CTS.event.LineupEntry;
-import CTS.misc.Money; // <-- 1. ADDED IMPORT
+import CTS.misc.Money; 
 
 import java.util.Date;
 import java.util.List;
@@ -25,7 +25,7 @@ public class VenueAdmin extends User {
    
 
     /**
-     * Constructor for a BRAND NEW admin user (called by userDatabase.createUser)
+     * Constructor for a BRAND NEW admin user 
      */
     public VenueAdmin(int userId, String name, String email, String plainPassword) {
         // Calls the public User constructor, which hashes the password
@@ -33,7 +33,7 @@ public class VenueAdmin extends User {
     }
     
     /**
-     * REQUIRED: Constructor for LOADING an existing admin (called by User.fromCsvRow)
+     * Constructor for LOADING an existing admin 
      */
     protected VenueAdmin(int userId, String name, String email, String passwordHash, LoadFrom tag) {
         // Calls the protected User constructor, which assigns the pre-existing hash
@@ -64,7 +64,7 @@ public class VenueAdmin extends User {
      * @param venue Name of the venue.
      * @param description Event description.
      * @param capacity Total capacity.
-     * @param basePrice The base price for a ticket. // <-- 2. ADDED PARAMETER
+     * @param basePrice The base price for a ticket. 
      * @return The newly created Event object.
      */
     public Event createEvent(List<Event> allEvents, int newEventId, String name, Date startDate, String venue, String description, int capacity, Money basePrice) { // <-- 2. ADDED PARAMETER
@@ -78,7 +78,7 @@ public class VenueAdmin extends User {
             description,
             capacity,
             EventStatus.DRAFT, // New events always start as DRAFT
-            basePrice          // <-- 3. PASSED PARAMETER TO CONSTRUCTOR
+            basePrice          //  PASSED PARAMETER TO CONSTRUCTOR
         );
         
         allEvents.add(newEvent);
@@ -120,10 +120,10 @@ public class VenueAdmin extends User {
      * Adds an artist to an event's lineup.
      * @param event The event to modify.
      * @param artist The artist to add.
-     * @param allLineupEntries The main list of all lineup entries (to add to).
-     * @param position The artist's position in the lineup (e.g., 1 for headliner).
+     * @param allLineupEntries The main list of all lineup entries 
+     * @param position The artist's position in the lineup.
      * @param notes Any notes about this performance.
-     * @return The newly created LineupEntry object.
+     * @return The newly created LineupEntry object
      */
     public LineupEntry addLineupEntry(Event event, Artist artist, List<LineupEntry> allLineupEntries, int position, String notes) {
         System.out.println(getName() + " is adding " + artist.getStageName() + " to " + event.getName());
@@ -135,10 +135,10 @@ public class VenueAdmin extends User {
             artist
         );
         
-        // Add to the main list (for saving to lineup.csv)
+        // Add to the main list 
         allLineupEntries.add(newEntry);
         
-        // Also add to the event's internal list (for easy lookup)
+        //  add to the event's internal list (for easy lookup)
         event.addLineupEntry(newEntry);
         
         return newEntry;

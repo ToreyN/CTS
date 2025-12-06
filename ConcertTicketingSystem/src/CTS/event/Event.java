@@ -47,7 +47,7 @@ public class Event {
         this.ticketsSold = 0;     // --- FIELD INITIALIZED --- ADDED --- 11/26
     }
 
-    // --- Getters (Existing) ---
+    // --- Getters  ---
     public int getEventId() {
         return eventId;
     }
@@ -83,8 +83,6 @@ public class Event {
     public List<LineupEntry> getLineup() {
         return lineup;
     }
-
-    // --- NEW GETTERS AND HELPERS ---
 
 
 //  Gets the base price for a ticket to this event.
@@ -125,7 +123,7 @@ public class Event {
         return false; // Sold out!
     }
 
-    // --- Other Methods (Existing) ---
+    // --- Other Methods  ---
     
     public void addLineupEntry(LineupEntry entry) {
         if (entry != null) {
@@ -165,11 +163,11 @@ public class Event {
     // eventId,name,startDateTimeMillis,venueName,description,capacity,status,priceInline,ticketsSold
 
 
-//  UPDATED to include price and ticketsSold
+
 
     public String toCsvRow() {
         long millis = startDateTime != null ? startDateTime.getTime() : 0L;
-        // Use the toInlineString() from your Money class
+
         String priceString = (basePrice != null) ? basePrice.toInlineString() : "0.0:USD";
         
         return eventId + "," +
@@ -179,16 +177,20 @@ public class Event {
                 escape(description) + "," +
                 capacity + "," +
                 status.name() + "," +
-                escape(priceString) + "," +  // --- SAVE PRICE --- ADDED --- 11/26
+                priceString + "," +  // --- SAVE PRICE --- ADDED --- 11/26
                 ticketsSold;                // --- SAVE SOLD COUNT --- ADDED --- 11/26
     }
 
 
-// UPDATED to load price and ticketsSold --- ADDED --- 11/26
+
 
     public static Event fromCsvRow(String line) {
         try {
-            String[] parts = line.split(",", 9); // --- NOW 9 PARTS --- ADDED --- 11/26
+        	String[] parts = line.split("(?<!\\\\),", -1);
+        	if (parts.length < 9) {
+        	    System.err.println("Skipping malformed event line: Not enough parts (" + parts.length + ")");
+        	    return null;
+        	}
             int id = Integer.parseInt(parts[0]);
             String name = unescape(parts[1]);
             long millis = Long.parseLong(parts[2]);
@@ -222,8 +224,8 @@ public class Event {
             if (line.trim().isEmpty() || line.startsWith("#")) {
                 continue;
             }
-            Event e = fromCsvRow(line); // Call updated method
-            if (e != null) {            // Add null check
+            Event e = fromCsvRow(line); // Call method
+            if (e != null) {            // null check
                 result.add(e);
             }
         }
@@ -232,7 +234,7 @@ public class Event {
 
     public static void saveToCsv(Path path, List<Event> events) throws IOException {
         List<String> lines = new ArrayList<>();
-        // --- CSV HEADER UPDATED ---
+        // --- CSV HEADER  ---
         lines.add("# eventId,name,startDateTimeMillis,venueName,description,capacity,status,priceInline,ticketsSold");
         for (Event e : events) {
             lines.add(e.toCsvRow());
@@ -240,7 +242,7 @@ public class Event {
         Files.write(path, lines);
     }
 
-    // --- CSV Helpers (Existing) ---
+    // --- CSV Helpers ---
     private static String escape(String s) {
         if (s == null) return "";
         return s.replace("\\", "\\\\").replace(",", "\\,");
@@ -263,7 +265,7 @@ public class Event {
     }
 
     /**
-     * Helper to sort lineup in-place by position (1, 2, 3, ...).
+     * Helper to sort lineup in-place by position 
      */
     public void sortLineupByPosition() {
         lineup.sort(Comparator.comparingInt(LineupEntry::getPosition));
