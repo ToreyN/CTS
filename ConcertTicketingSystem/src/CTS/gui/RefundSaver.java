@@ -1,6 +1,6 @@
 package CTS.gui;
 
-import CTS.booking.RefundRequest;
+import CTS.misc.RefundRequest;
 
 import java.io.*;
 import java.nio.file.Path;

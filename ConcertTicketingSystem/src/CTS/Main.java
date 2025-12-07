@@ -6,7 +6,7 @@ import CTS.misc.*;
 import CTS.booking.*;
 import CTS.gui.MainMenuGUI;
 import CTS.gui.GUIApp;
-import CTS.enums.PaymentType; // --- ENSURE THIS IS IMPORTED ---
+import CTS.enums.PaymentType; 
 import CTS.enums.EventStatus;
 import CTS.enums.PaymentStatus;
 import CTS.enums.RefundStatus;

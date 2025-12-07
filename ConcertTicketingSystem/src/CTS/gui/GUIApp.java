@@ -13,6 +13,9 @@ public class GUIApp {
 
     private JFrame frame;
     private User currentUser;
+    
+    public GUIApp() {
+    }
 
     public void start(User user) {
         this.currentUser = user;

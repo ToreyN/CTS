@@ -44,6 +44,20 @@ public class ArtistManagerDialog extends JDialog {
         add(save);
         setVisible(true);
     }
+    
+    public static Artist findArtistById(int id) {
+        try {
+            var all = Artist.loadFromCsv(Paths.get("artists.csv"));
+            for (Artist a : all) {
+                if (a.getArtistId() == id) {
+                    return a;
+                }
+            }
+        } catch (Exception ignored) {}
+
+        return null;  // artist not found
+    }
+
 
     private int generateArtistId() {
         try {

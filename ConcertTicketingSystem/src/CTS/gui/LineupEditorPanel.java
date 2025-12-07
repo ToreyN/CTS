@@ -2,7 +2,6 @@ package CTS.gui;
 
 import CTS.event.Event;
 import CTS.event.LineupEntry;
-import CTS.event.Artist;
 
 import javax.swing.*;
 import java.awt.*;
@@ -12,45 +11,49 @@ import java.util.List;
 public class LineupEditorPanel extends JDialog {
 
     private final Event event;
+    private final List<Event> events;
+    private final List<LineupEntry> lineupEntries;
 
-    public LineupEditorPanel(Window parent, Event event) {
-        super(parent, "Lineup Editor – " + event.getName(), ModalityType.APPLICATION_MODAL);
+    public LineupEditorPanel(Window parent,
+                             Event event,
+                             List<Event> events,
+                             List<LineupEntry> lineupEntries) {
+
+        super(parent, "Edit Lineup – " + event.getName(), ModalityType.APPLICATION_MODAL);
+
         this.event = event;
+        this.events = events;
+        this.lineupEntries = lineupEntries;
 
         setSize(500, 600);
         setLocationRelativeTo(parent);
         setLayout(new BorderLayout());
 
         rebuildUI();
-
         setVisible(true);
     }
 
     private void rebuildUI() {
         getContentPane().removeAll();
 
+        event.sortLineupByPosition();
+
         JPanel list = new JPanel();
         list.setLayout(new BoxLayout(list, BoxLayout.Y_AXIS));
 
-        event.sortLineupByPosition();
-
         for (LineupEntry entry : event.getLineup()) {
             list.add(buildEntryCard(entry));
+            list.add(Box.createVerticalStrut(10));
         }
 
         add(new JScrollPane(list), BorderLayout.CENTER);
 
+        JButton addBtn = new JButton("Add Lineup Entry");
+        addBtn.addActionListener(ev ->
+                new AddLineupEntryDialog(this, event, this::saveAndRefresh));
+
         JPanel bottom = new JPanel(new FlowLayout(FlowLayout.LEFT));
-
-        JButton addArtist = new JButton("Add Artist");
-        addArtist.addActionListener(ev -> new ArtistManagerDialog(this));
-
-        JButton addEntry = new JButton("Add Lineup Entry");
-        addEntry.addActionListener(ev -> new AddLineupEntryDialog(this, event, this::saveAndRefresh));
-
-        bottom.add(addArtist);
-        bottom.add(addEntry);
-
+        bottom.add(addBtn);
         add(bottom, BorderLayout.SOUTH);
 
         revalidate();
@@ -59,7 +62,7 @@ public class LineupEditorPanel extends JDialog {
 
     private JPanel buildEntryCard(LineupEntry entry) {
         JPanel card = new JPanel(new GridLayout(0,1));
-        card.setBorder(BorderFactory.createTitledBorder("#" + entry.getPosition()));
+        card.setBorder(BorderFactory.createTitledBorder("Position " + entry.getPosition()));
 
         card.add(new JLabel("Artist: " + entry.getArtist().getStageName()));
         card.add(new JLabel("Genre: " + entry.getArtist().getGenre()));
@@ -72,11 +75,10 @@ public class LineupEditorPanel extends JDialog {
         JButton edit = new JButton("Edit Notes");
         JButton remove = new JButton("Remove");
 
-        up.addActionListener(ev -> moveEntry(entry, -1));
-        down.addActionListener(ev -> moveEntry(entry, +1));
-
-        edit.addActionListener(ev -> editNotes(entry));
-        remove.addActionListener(ev -> removeEntry(entry));
+        up.addActionListener(e -> move(entry, -1));
+        down.addActionListener(e -> move(entry, +1));
+        edit.addActionListener(e -> editNotes(entry));
+        remove.addActionListener(e -> removeEntry(entry));
 
         actions.add(up);
         actions.add(down);
@@ -88,7 +90,7 @@ public class LineupEditorPanel extends JDialog {
         return card;
     }
 
-    private void moveEntry(LineupEntry entry, int delta) {
+    private void move(LineupEntry entry, int delta) {
         entry.reorder(entry.getPosition() + delta);
         saveAndRefresh();
     }
@@ -103,20 +105,18 @@ public class LineupEditorPanel extends JDialog {
 
     private void removeEntry(LineupEntry entry) {
         event.getLineup().remove(entry);
+        lineupEntries.remove(entry);
         saveAndRefresh();
     }
 
     private void saveAndRefresh() {
         try {
-            // Save lineup CSV
-            CTS.event.LineupEntry.saveToCsv(Paths.get("lineup.csv"), CTS.gui.GUIState.lineupEntries);
-
-            // Save event CSV also (lineup stored inside event)
-            Event.saveToCsv(Paths.get("events.csv"), CTS.gui.GUIState.events);
-
-            rebuildUI();
+            LineupEntry.saveToCsv(Paths.get("lineup.csv"), lineupEntries);
+            Event.saveToCsv(Paths.get("events.csv"), events);
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Saving failed: " + e.getMessage());
+            JOptionPane.showMessageDialog(this, "Save failed: " + e.getMessage());
         }
+
+        rebuildUI();
     }
 }

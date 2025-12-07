@@ -26,4 +26,13 @@ public class UserOrderHelper {
 
         return mine;
     }
+    
+    public static List<Order> getAllOrders() {
+        try {
+        	return Order.loadFromCsv(Paths.get("orders.csv"));
+        } catch (Exception e) {
+            return java.util.List.of();
+        }
+    }
+
 }

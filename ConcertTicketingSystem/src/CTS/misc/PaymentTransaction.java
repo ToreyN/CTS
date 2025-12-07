@@ -194,6 +194,38 @@ public class PaymentTransaction {
         }
         return result;
     }
+    
+    public static List<PaymentTransaction> loadAll(Path path, List<Order> orders) throws IOException {
+        List<PaymentTransaction> result = new ArrayList<>();
+
+        List<RawPaymentRow> raw = loadRawRows(path);
+
+        for (RawPaymentRow r : raw) {
+            // Find matching order (may be null if missing)
+            Order o = null;
+            for (Order ord : orders) {
+                if (ord.getOrderId() == r.orderId) {
+                    o = ord;
+                    break;
+                }
+            }
+
+            PaymentTransaction txn = new PaymentTransaction(
+                    r.paymentId,
+                    r.gatewayRef,
+                    r.type,
+                    r.amount,
+                    r.timestamp,
+                    r.status,
+                    o
+            );
+
+            result.add(txn);
+        }
+
+        return result;
+    }
+
 
     public static void saveToCsv(Path path, List<PaymentTransaction> txns) throws IOException {
         List<String> lines = new ArrayList<>();

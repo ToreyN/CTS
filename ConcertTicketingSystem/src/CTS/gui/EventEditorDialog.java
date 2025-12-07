@@ -9,7 +9,7 @@ import java.awt.*;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.function.Consumer;
+import java.util.List;
 
 public class EventEditorDialog extends JDialog {
 
@@ -17,7 +17,7 @@ public class EventEditorDialog extends JDialog {
         super(parent, "Event Editor", ModalityType.APPLICATION_MODAL);
         setSize(400, 450);
         setLocationRelativeTo(parent);
-        setLayout(new GridLayout(0,1));
+        setLayout(new GridLayout(0, 1));
 
         boolean creating = (event == null);
         if (creating) {
@@ -33,15 +33,19 @@ public class EventEditorDialog extends JDialog {
             );
         }
 
-        JTextField name = new JTextField(event.getName());
-        JTextField venue = new JTextField(event.getVenueName());
-        JTextField desc = new JTextField(event.getDescription());
-        JTextField capacity = new JTextField("" + event.getCapacity());
-        JTextField price = new JTextField("" + event.getBasePrice().getAmount());
+       
+        final Event finalEvent = event;
+        // --------------------------------------------------------------------
+
+        JTextField name = new JTextField(finalEvent.getName());
+        JTextField venue = new JTextField(finalEvent.getVenueName());
+        JTextField desc = new JTextField(finalEvent.getDescription());
+        JTextField capacity = new JTextField("" + finalEvent.getCapacity());
+        JTextField price = new JTextField("" + finalEvent.getBasePrice().getAmount());
 
         JTextField dateField = new JTextField(
-                event.getStartDateTime() == null ? "" :
-                new SimpleDateFormat("yyyy-MM-dd HH:mm").format(event.getStartDateTime())
+                finalEvent.getStartDateTime() == null ? "" :
+                        new SimpleDateFormat("yyyy-MM-dd HH:mm").format(finalEvent.getStartDateTime())
         );
 
         add(new JLabel("Name:"));
@@ -58,31 +62,32 @@ public class EventEditorDialog extends JDialog {
         add(dateField);
 
         JButton save = new JButton("Save Event");
+
         save.addActionListener(ev -> {
             try {
-                event.updateDescription(desc.getText());
-                event.setCapacity(Integer.parseInt(capacity.getText()));
-                event.setEventId(event.getEventId());
                 
-                event.setPrice(new Money(Double.parseDouble(price.getText()), "USD"));
-                event.setVenue(venue.getText());
-                event.setName(name.getText());
+                finalEvent.setName(name.getText());
+                finalEvent.setVenue(venue.getText());
+                finalEvent.updateDescription(desc.getText());
+                finalEvent.setCapacity(Integer.parseInt(capacity.getText()));
+                finalEvent.setPrice(new Money(Double.parseDouble(price.getText()), "USD"));
 
                 String d = dateField.getText().trim();
                 if (!d.isBlank()) {
-                    event.setDate(new SimpleDateFormat("yyyy-MM-dd HH:mm").parse(d));
+                    finalEvent.setDate(new SimpleDateFormat("yyyy-MM-dd HH:mm").parse(d));
                 }
+                // ----------------------------------------------------------------
 
-                // Save the event back to CSV
-                var list = Event.loadFromCsv(Paths.get("events.csv"));
-                var existing = list.stream().filter(e -> e.getEventId() == event.getEventId()).findFirst();
+                // Load all events
+                List<Event> list = Event.loadFromCsv(Paths.get("events.csv"));
 
-                if (existing.isPresent()) {
-                    list.remove(existing.get());
-                }
-                list.add(event);
+                // Replace existing event
+                list.removeIf(e -> e.getEventId() == finalEvent.getEventId());
+                list.add(finalEvent);
 
+                // Save back to CSV
                 Event.saveToCsv(Paths.get("events.csv"), list);
+
                 onSave.run();
                 dispose();
 
@@ -90,6 +95,7 @@ public class EventEditorDialog extends JDialog {
                 JOptionPane.showMessageDialog(this, "Error saving event: " + ex.getMessage());
             }
         });
+
         add(save);
 
         setVisible(true);

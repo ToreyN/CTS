@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import CTS.user.VenueAdmin;
+import CTS.user.User;
 //import CTS.enums.PaymentType;
 //import CTS.enums.PaymentStatus;
 import CTS.enums.RefundStatus;
@@ -108,16 +109,7 @@ public class RefundRequest {
         this.reason = reason; // store denial reason
     }
     
-    public void approve(User admin) {
-        this.status = RefundStatus.APPROVED;
-        this.adminUser = admin;
-    }
-
-    public void deny(User admin, String reason) {
-        this.status = RefundStatus.DENIED;
-        this.adminUser = admin;
-        this.reason = reason;
-    }
+    
 
 
     // ===== CSV SUPPORT =====
@@ -211,7 +203,7 @@ public class RefundRequest {
         }
 
         long millis = (r.createdAt != null) ? r.createdAt.getTime() : 0L;
-        int adminId = (r.adminUser != null) ? r.adminUser.getUserId() : -1;
+        int adminId = (r.processedBy != null) ? r.processedBy.getUserId() : -1;
         int refundTxnId = (r.refundTxn != null) ? r.refundTxn.getPaymentId() : -1;
 
         String row = r.refundId + "," +
@@ -232,7 +224,7 @@ public class RefundRequest {
 
         for (RefundRequest r : list) {
             long millis = (r.createdAt != null) ? r.createdAt.getTime() : 0L;
-            int adminId = (r.adminUser != null) ? r.adminUser.getUserId() : -1;
+            int adminId = (r.processedBy != null) ? r.processedBy.getUserId() : -1;
             int refundTxnId = (r.refundTxn != null) ? r.refundTxn.getPaymentId() : -1;
 
             lines.add(

@@ -3,16 +3,13 @@ package CTS.gui;
 import CTS.booking.Order;
 import CTS.enums.OrderStatus;
 import CTS.enums.RefundStatus;
-import CTS.user.User;
-import CTS.event.Event;
-import CTS.misc.Money;
-import CTS.booking.Ticket;
 import CTS.misc.RefundRequest;
+import CTS.user.User;
+import CTS.gui.UserOrderHelper;
 
 import javax.swing.*;
 import java.awt.*;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -27,6 +24,8 @@ public class RefundRequestPanel extends JPanel {
     }
 
     private void buildUI() {
+
+        removeAll();
 
         List<Order> myOrders = UserOrderHelper.getOrdersFor(user);
 
@@ -45,6 +44,9 @@ public class RefundRequestPanel extends JPanel {
 
         JScrollPane scroll = new JScrollPane(listPanel);
         add(scroll, BorderLayout.CENTER);
+
+        revalidate();
+        repaint();
     }
 
     private JPanel buildOrderCard(Order order) {
@@ -77,7 +79,7 @@ public class RefundRequestPanel extends JPanel {
         JButton requestRefund = new JButton("Request Refund");
         requestRefund.addActionListener(e -> attemptRefund(order));
 
-        // Disable button if not allowed
+        // Disable when not allowed
         if (order.getStatus() == OrderStatus.CANCELED ||
             order.getStatus() == OrderStatus.REFUNDED ||
             hasPendingRefund(order)) {
@@ -93,6 +95,7 @@ public class RefundRequestPanel extends JPanel {
     }
 
     private void attemptRefund(Order order) {
+
         if (hasPendingRefund(order)) {
             JOptionPane.showMessageDialog(this,
                     "A refund request for this order is already pending.");
@@ -128,8 +131,7 @@ public class RefundRequestPanel extends JPanel {
 
     private void submitRefund(Order order, String reason) {
         try {
-        	int nextId = RefundRequest.nextId();
-
+            int nextId = RefundRequest.nextId();
 
             RefundRequest rr = new RefundRequest(
                     nextId,
@@ -138,12 +140,15 @@ public class RefundRequestPanel extends JPanel {
                     reason,
                     RefundStatus.PENDING
             );
+
+            // Save new refund request to CSV
             RefundRequest.append(Paths.get("refunds.csv"), rr);
 
-            RefundSaver.appendRefund(rr, Paths.get("refunds.csv"));
-
             JOptionPane.showMessageDialog(this,
-                    "Refund request submitted! Refund ID: " + nextId);
+                    "Refund request submitted!\nRefund ID: " + nextId);
+
+            // Refresh UI so button becomes disabled
+            buildUI();
 
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this,
@@ -153,15 +158,27 @@ public class RefundRequestPanel extends JPanel {
 
     private boolean hasPendingRefund(Order order) {
         try {
-        	List<RefundRequest> all = RefundRequest.loadAll(Paths.get("refunds.csv"), UserOrderHelper.getAllOrders());
+            // Load ALL orders directly from CSV
+            List<Order> allOrders = Order.loadFromCsv(Paths.get("orders.csv"));
+
+            // Load all refunds, linking each to its Order
+            List<RefundRequest> all =
+                    RefundRequest.loadAll(
+                            Paths.get("refunds.csv"),
+                            allOrders
+                    );
 
             for (RefundRequest rr : all) {
-                if (rr.getOrder().getOrderId() == order.getOrderId() &&
+                if (rr.getOrder() != null &&
+                    rr.getOrder().getOrderId() == order.getOrderId() &&
                     rr.getStatus() == RefundStatus.PENDING) {
                     return true;
                 }
             }
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
+
         return false;
     }
+
 }

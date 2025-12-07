@@ -4,6 +4,7 @@ import CTS.booking.Order;
 import CTS.booking.Ticket;
 import CTS.event.Event;
 import CTS.user.User;
+import CTS.misc.RefundRequest;
 
 import javax.swing.*;
 import java.awt.*;
@@ -43,6 +44,39 @@ public class BookingHistoryPanel extends JPanel {
         JScrollPane scroll = new JScrollPane(listPanel);
         add(scroll, BorderLayout.CENTER);
     }
+    
+    private void requestRefund(Order order) {
+        String reason = JOptionPane.showInputDialog("Reason for refund:");
+        if (reason == null || reason.isBlank())
+            return;
+
+        try {
+            int nextId = RefundRequest.nextId();
+
+            RefundRequest rr = new RefundRequest(
+                    nextId,
+                    order,
+                    new java.util.Date(),
+                    reason,
+                    CTS.enums.RefundStatus.PENDING
+            );
+
+            // Append to CSV
+            RefundRequest.append(java.nio.file.Paths.get("refunds.csv"), rr);
+
+            JOptionPane.showMessageDialog(this, "Refund request submitted.");
+
+            // Refresh UI
+            removeAll();
+            buildUI();
+            revalidate();
+            repaint();
+
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Error submitting refund: " + ex.getMessage());
+        }
+    }
+
 
 
     private JPanel buildOrderCard(Order order) {
@@ -72,32 +106,56 @@ public class BookingHistoryPanel extends JPanel {
         card.add(status);
         card.add(Box.createVerticalStrut(10));
 
-        // Tickets header
+        // --- TICKETS ---
         JLabel ticketsLabel = new JLabel("Tickets:");
         ticketsLabel.setFont(new Font("Arial", Font.BOLD, 14));
         card.add(ticketsLabel);
 
         List<Ticket> tickets = order.getTickets();
-
         if (tickets.isEmpty()) {
             card.add(new JLabel("  (No tickets found in this order)"));
         } else {
             for (Ticket t : tickets) {
                 JPanel tPanel = new JPanel(new GridLayout(1, 2));
-
-                JLabel seatInfo = new JLabel("  " + t.getSeatLabel());
-                JLabel price = new JLabel("Price: " + t.getPrice());
-
-                tPanel.add(seatInfo);
-                tPanel.add(price);
+                tPanel.add(new JLabel("  " + t.getSeatLabel()));
+                tPanel.add(new JLabel("Price: " + t.getPrice()));
                 tPanel.setBackground(new Color(245, 245, 245));
-
                 card.add(tPanel);
             }
         }
-        
+
+        card.add(Box.createVerticalStrut(10));
+
+        // ===========================
+        // REFUND STATUS + BUTTON ROW
+        // ===========================
+
+        JPanel refundPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        refundPanel.setBackground(new Color(245,245,245));
+
+        RefundRequest existing = RefundLookupHelper.findRefundForOrder(order);
+
+        if (order.getStatus().toString().equals("REFUNDED")) {
+            refundPanel.add(new JLabel("Refund: APPROVED"));
+        }
+        else if (existing != null) {
+            switch (existing.getStatus()) {
+                case PENDING -> refundPanel.add(new JLabel("Refund: PENDING"));
+                case APPROVED -> refundPanel.add(new JLabel("Refund: APPROVED"));
+                case DENIED -> refundPanel.add(new JLabel("Refund: DENIED"));
+            }
+        }
+        else {
+            JButton req = new JButton("Request Refund");
+            req.addActionListener(ev -> requestRefund(order));
+            refundPanel.add(req);
+        }
+
+        card.add(refundPanel);
+
         return card;
     }
+
 }
 
         

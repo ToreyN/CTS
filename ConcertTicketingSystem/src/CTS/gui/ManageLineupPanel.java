@@ -1,26 +1,49 @@
 package CTS.gui;
 
 import CTS.event.Event;
+import CTS.event.LineupEntry;
+import CTS.event.Artist;
 
 import javax.swing.*;
 import java.awt.*;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Admin panel for selecting an event and editing its lineup.
- */
 public class ManageLineupPanel extends JPanel {
 
-    public ManageLineupPanel() {
-        setLayout(new BorderLayout());
+    private final List<Event> events;
+    private final List<LineupEntry> lineupEntries;
 
-        List<Event> events;
-        try {
-            events = Event.loadFromCsv(Paths.get("events.csv"));
-        } catch (Exception e) {
-            events = List.of();
+    public ManageLineupPanel(List<Event> events, List<LineupEntry> lineupEntries) {
+        this.events = events;
+        this.lineupEntries = lineupEntries;
+
+        // Link lineup entries into event objects 
+        rebuildEventLineups();
+
+        buildUI();
+    }
+
+    /** Attach lineup entries to their correct events */
+    private void rebuildEventLineups() {
+        // Clear existing lineups
+        for (Event e : events) {
+            e.getLineup().clear();
         }
+
+        // Reassign lineup entries
+        for (LineupEntry le : lineupEntries) {
+            for (Event e : events) {
+                if (e.getEventId() == le.getEventId()) {
+                    e.addLineupEntry(le);
+                }
+            }
+        }
+    }
+
+    private void buildUI() {
+        setLayout(new BorderLayout());
 
         JPanel list = new JPanel();
         list.setLayout(new BoxLayout(list, BoxLayout.Y_AXIS));
@@ -33,8 +56,9 @@ public class ManageLineupPanel extends JPanel {
     }
 
     private JPanel buildEventCard(Event event) {
-        JPanel card = new JPanel(new GridLayout(0,1));
-        card.setBorder(BorderFactory.createTitledBorder(event.getName() + " (ID " + event.getEventId() + ")"));
+        JPanel card = new JPanel(new GridLayout(0, 1));
+        card.setBorder(BorderFactory.createTitledBorder(
+                event.getName() + " (ID " + event.getEventId() + ")"));
 
         card.add(new JLabel("Venue: " + event.getVenueName()));
         card.add(new JLabel("Lineup entries: " + event.getLineup().size()));
@@ -46,10 +70,12 @@ public class ManageLineupPanel extends JPanel {
         return card;
     }
 
-    private void openLineupEditor(Event e) {
+    private void openLineupEditor(Event event) {
         new LineupEditorPanel(
                 SwingUtilities.getWindowAncestor(this),
-                e
+                event,
+                events,
+                lineupEntries
         );
     }
 }
