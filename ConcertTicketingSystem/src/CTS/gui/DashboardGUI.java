@@ -27,7 +27,7 @@ public class DashboardGUI extends JFrame {
     private List<LineupEntry> lineup;
 
 
-    // Local storage (replaces GUIState)
+    // Local storage
     private List<Order> orders;
     private List<RefundRequest> refunds;
     private List<PaymentTransaction> payments;
@@ -235,3 +235,4 @@ public class DashboardGUI extends JFrame {
         new MainMenuGUI(new CTS.user.userDatabase()).setVisible(true);
     }
 }
+
