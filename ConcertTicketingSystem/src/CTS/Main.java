@@ -4,7 +4,9 @@ import CTS.user.*;
 import CTS.event.*;
 import CTS.misc.*;
 import CTS.booking.*;
-import CTS.enums.PaymentType; // --- ENSURE THIS IS IMPORTED ---
+import CTS.gui.MainMenuGUI;
+import CTS.gui.GUIApp;
+import CTS.enums.PaymentType; 
 import CTS.enums.EventStatus;
 import CTS.enums.PaymentStatus;
 import CTS.enums.RefundStatus;
@@ -63,7 +65,10 @@ public class Main {
     private int nextTicketId = 1;
 
     public static void main(String[] args) {
-        new Main().run();
+        userDatabase udb = new userDatabase();
+
+        MainMenuGUI gui = new MainMenuGUI(udb);
+        gui.setVisible(true);
     }
 
     private void run() {
@@ -289,12 +294,24 @@ public class Main {
         }
         System.out.println("Welcome, " + user.getName() + "!");
         if (user instanceof VenueAdmin admin) {
+
+            // Admins stay in CLI
             adminMenu(admin);
+
         } else if (user instanceof ConcertGoer goer) {
-            goerMenu(goer);
+
+            // =============================
+            //  LAUNCH GUI FOR CONCERT GOERS
+            // =============================
+            CTS.gui.GUIApp gui = new CTS.gui.GUIApp();
+            gui.start(goer);
+
+            return;  // <--- CRITICAL: prevents CLI from running afterward
+
         } else {
             System.out.println("Unknown user type.");
         }
+
     }
 
     // =============================================

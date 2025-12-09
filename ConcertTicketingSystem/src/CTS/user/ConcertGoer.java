@@ -34,7 +34,7 @@ public class ConcertGoer extends User {
 
 //  Constructor for LOADING an existing user (called by User.fromCsvRow)
 
-    protected ConcertGoer(int userId, String name, String email, String passwordHash, LoadFrom tag) {
+    public ConcertGoer(int userId, String name, String email, String passwordHash, LoadFrom tag) {
         super(userId, name, email, passwordHash, "USER", tag);
     }
 
@@ -58,7 +58,7 @@ public class ConcertGoer extends User {
         System.out.println(getName() + " is viewing their booking history...");
         
         return allOrders.stream()
-                .filter(order -> order.getUserId() == this.getUserId()) // (Assumes Order.getUserId())
+                .filter(order -> order.getUserId() == this.getUserId()) 
                 .collect(Collectors.toList());
     }
 

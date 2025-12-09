@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class Artist {
    private int artistId;
@@ -90,9 +91,36 @@ public class Artist {
     }
 
     private static String unescape(String s) {
-        return s.replace("\\,", ",").replace("\\\\", "\\");
+        if (s == null) return "";
+        // Note the use of replaceAll which uses regex, sometimes necessary in complex environments
+        return s.replaceAll("\\\\\\\\", "\\\\").replaceAll("\\\\,", ","); 
     }
 
+
+    
+    @Override
+    public boolean equals(Object o) {
+        //  Is it the exact same object instance?
+        if (this == o) return true;
+        
+        //  Is the object null, or is it not an Artist?
+        if (o == null || getClass() != o.getClass()) return false;
+        
+        // Safely cast the object to an Artist
+        Artist artist = (Artist) o;
+        
+        
+        // Two artists are equal ONLY if their unique IDs are the same.
+        return artistId == artist.artistId; 
+    }
+
+    @Override
+    public int hashCode() {
+        // The hash code must be derived from the field(s) used in equals().
+        // Since we only check artistId in equals(), we only hash artistId.
+        return Objects.hash(artistId); 
+    }
+    
     @Override
     public String toString() {
         return "Artist{" +

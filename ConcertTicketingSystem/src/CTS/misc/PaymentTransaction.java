@@ -25,11 +25,20 @@ import java.util.List;
 public class PaymentTransaction {
 
     private int paymentId;
+    
+    private static int NEXT_ID = 1;
+
+    public static int nextId() {
+        return NEXT_ID++;
+    }
+
     private String gatewayRef;
     private PaymentType type;
     private Money amount;
     private Date timestamp;
     private PaymentStatus status;
+    
+    
 
     
     private Order order;
@@ -172,11 +181,51 @@ public class PaymentTransaction {
             Date timestamp = millis == 0L ? null : new Date(millis);
             PaymentStatus status = PaymentStatus.valueOf(parts[6]);
 
-            result.add(new RawPaymentRow(
-                    paymentId, orderId, gatewayRef, type, amount, timestamp, status));
+            // Create row object
+            RawPaymentRow row = new RawPaymentRow(
+                    paymentId, orderId, gatewayRef, type, amount, timestamp, status);
+
+            result.add(row);
+
+            // ⭐ UPDATE NEXT_ID HERE
+            if (paymentId >= NEXT_ID) {
+                NEXT_ID = paymentId + 1;
+            }
         }
         return result;
     }
+    
+    public static List<PaymentTransaction> loadAll(Path path, List<Order> orders) throws IOException {
+        List<PaymentTransaction> result = new ArrayList<>();
+
+        List<RawPaymentRow> raw = loadRawRows(path);
+
+        for (RawPaymentRow r : raw) {
+            // Find matching order (may be null if missing)
+            Order o = null;
+            for (Order ord : orders) {
+                if (ord.getOrderId() == r.orderId) {
+                    o = ord;
+                    break;
+                }
+            }
+
+            PaymentTransaction txn = new PaymentTransaction(
+                    r.paymentId,
+                    r.gatewayRef,
+                    r.type,
+                    r.amount,
+                    r.timestamp,
+                    r.status,
+                    o
+            );
+
+            result.add(txn);
+        }
+
+        return result;
+    }
+
 
     public static void saveToCsv(Path path, List<PaymentTransaction> txns) throws IOException {
         List<String> lines = new ArrayList<>();

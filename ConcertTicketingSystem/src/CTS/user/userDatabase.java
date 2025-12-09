@@ -11,10 +11,8 @@ import java.util.ArrayList;
 /**
  * Manages all User objects (ConcertGoer, VenueAdmin) and handles all
  * persistence logic by reading from and writing to the users.csv file.
- * * This class acts as the "engine" or "controller" for the user module,
+ * * This class acts as the "engine"/"controller" for the user module,
  * hiding all data logic from the Main/GUI classes.
- * * This implementation satisfies the Task 3 requirement for an engine
- * that uses "local files/file-input".
  */
 public class userDatabase {
 
@@ -31,7 +29,7 @@ public class userDatabase {
         loadFromFile(); // Load all users from the file on startup
     }
 
-    // --- 1. I/O "Engine" Methods  ---
+    //  I/O  Methods  ---
 
  
     private void loadFromFile() {
@@ -41,7 +39,7 @@ public class userDatabase {
             return; // No file to load, just start with an empty list
         }
 
-        // Use a "try-with-resources" block to auto-close the reader
+        // try-with-resources block to auto-close the reader
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             String line;
             int maxId = 0; // Keep track of the highest ID found
@@ -51,7 +49,7 @@ public class userDatabase {
                     continue; // Skip empty lines or comments
                 }
                 
-                // Use the static helper from User.java to parse the line
+                //  static helper from User.java to parse the line
                 User user = User.fromCsvRow(line);
                 
                 if (user != null) {
@@ -74,7 +72,7 @@ public class userDatabase {
 
     
     public void saveToFile() {
-        // Use a "try-with-resources" block to auto-close the writer
+        // try-with-resources block to auto-close the writer same as above!
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
             for (User user : this.users) {
                 // Use the helper method from ConcertGoer/VenueAdmin
@@ -88,22 +86,22 @@ public class userDatabase {
 
  
     public User login(String email, String password) {
-        // 1. Find the user by their email
+        //  find the user by their email
         User userToFind = getUserByEmail(email);
         
-        // 2. Check if user exists AND password is correct
+        // Check if user exists AND password is correct
         if (userToFind != null && userToFind.checkPassword(password)) {
             // Success!
             return userToFind; 
         }
         
-        // Failure
+        // failure
         return null; 
     }
 
 
     public User registerUser(String name, String email, String password, String role) {
-        // --- Business Logic 1: Check for duplicate email ---
+        // check for duplicate email ---
         if (getUserByEmail(email) != null) {
             System.err.println("UserDatabase Error: User with email " + email + " already exists.");
             return null;
@@ -120,7 +118,7 @@ public class userDatabase {
             newUser = new ConcertGoer(newId, name, email, password);
         }
         
-        // --- Update state ---
+        // --- Update state 
         this.nextUserId++; // Increment the ID for the next registration
         this.users.add(newUser); // Add to the in-memory list
         
@@ -131,7 +129,7 @@ public class userDatabase {
         return newUser;
     }
 
-    // --- 3. Helper Methods ---
+    //  Helper Methods 
 
 
     public User getUserByEmail(String email) {

@@ -26,9 +26,9 @@ public abstract class User {
     private String passwordHash;
     private String role;
     
-    // ### 1. ADD THE PRIVATE ENUM TAG ###
-    /** A private enum used *only* to create a unique constructor signature. */
-    protected enum LoadFrom { CSV_ROW } // <-- CHANGED
+   
+    // A private enum used only to create a unique constructor signature
+    protected enum LoadFrom { CSV_ROW } 
 
     // =========================================================================
     //  CONSTRUCTORS
@@ -43,11 +43,8 @@ public abstract class User {
         this.passwordHash = hashPassword(plainPassword); // Hashes the plain password
     }
 
-    // ### 2. UPDATE THE PROTECTED CONSTRUCTOR ###
-    /** * Used ONLY when loading an existing user from CSV.
-     * The 'LoadFrom' tag makes its signature unique.
-     */
-    protected User(int userId, String name, String email, String passwordHash, String role, LoadFrom tag) { // <-- CHANGED
+   
+    protected User(int userId, String name, String email, String passwordHash, String role, LoadFrom tag) { 
         this.userId = userId;
         this.name = name;
         this.email = email;
@@ -61,10 +58,14 @@ public abstract class User {
     // =========================================================================
 
     public boolean checkPassword(String plainPassword) {
+    	// Post JUnit test: Check for null or empty string immediately
+        if (plainPassword == null || plainPassword.isEmpty()) {
+            return false;
+        }
         return hashPassword(plainPassword).equals(this.passwordHash);
     }
 
-    /** Computes SHA-256 hash (simple version for coursework) */
+    // Computes SHA-256 using java libraries 
     private String hashPassword(String password) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
@@ -92,7 +93,7 @@ public abstract class User {
 
 
     // =========================================================================
-    //  CSV ROW SERIALIZATION (convert user <-> CSV line)
+    //  CSV ROW SERIALIZATION 
     // =========================================================================
 
     /** Converts user to a single CSV row */
@@ -104,10 +105,9 @@ public abstract class User {
                role;
     }
 
-    // ### 3. UPDATE THE fromCsvRow METHOD ###
-    /**
-     * Creates a User subclass (ConcertGoer or VenueAdmin) from a CSV row.
-     */
+    
+    
+     // Creates a User subclass (ConcertGoer or VenueAdmin) from a CSV row.
     public static User fromCsvRow(String line) {
         // Split into exactly 5 parts, ignoring escaped commas
         String[] parts = line.split("(?<!\\\\),", 5);
@@ -121,13 +121,13 @@ public abstract class User {
         String passwordHash = parts[3];
         String role = parts[4];
 
-        // We pass this tag to the subclass constructors
-        LoadFrom tag = LoadFrom.CSV_ROW; // <-- CHANGED
+        //  pass this tag to the subclass constructors
+        LoadFrom tag = LoadFrom.CSV_ROW; // 
 
         switch (role) {
-            // These constructors now accept the 'tag'
-            case "USER":  return new ConcertGoer(id, name, email, passwordHash, tag); // <-- CHANGED
-            case "ADMIN": return new VenueAdmin(id, name, email, passwordHash, tag); // <-- CHANGED
+            // These constructors now accept the 'tag'!
+            case "USER":  return new ConcertGoer(id, name, email, passwordHash, tag); 
+            case "ADMIN": return new VenueAdmin(id, name, email, passwordHash, tag); 
             default:
                 throw new IllegalArgumentException("Unknown role: " + role);
         }
@@ -165,7 +165,7 @@ public abstract class User {
     }
 
 
-    /** Writes all users to a CSV file */
+    // Writes all users to a CSV file
     public static void saveToCsv(Path path, List<User> users) throws IOException {
         List<String> lines = new ArrayList<>();
         lines.add("# userId,name,email,passwordHash,role");
@@ -183,13 +183,13 @@ public abstract class User {
     //  CSV UTILITY METHODS
     // =========================================================================
 
-    /** Escapes commas and backslashes so CSV parsing is safe */
+    // Escapes commas and backslashes so CSV parsing is safe 
     private static String escape(String s) {
         if (s == null) return "";
         return s.replace("\\", "\\\\").replace(",", "\\,");
     }
 
-    /** Reverses the escaping rules */
+    // Reverses the escaping rules 
     private static String unescape(String s) {
         return s.replace("\\\\", "\\").replace("\\,", ",");
     }

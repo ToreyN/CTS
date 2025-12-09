@@ -33,7 +33,13 @@ public class Order {
         this.totalAmount = new Money(0.0, "USD");
     }
 
-    
+    public static Order findById(int id, List<Order> all) {
+        for (Order o : all) {
+            if (o.getOrderId() == id) return o;
+        }
+        return null;
+    }
+
      // Constructor for a new order, linking it to a user.
      
     public Order(int orderId, int userId) { 
@@ -42,7 +48,7 @@ public class Order {
         this.userId = userId; 
     }
     
-     // --- NEW CONSTRUCTOR ---
+     
      //Constructor used only by fromCsvRow when loading from file.
     
     private Order(int orderId, int userId, Date createdAt, OrderStatus status) {
@@ -141,7 +147,6 @@ public class Order {
     }
 
     /**
-     * --- NEW METHOD ---
      * Rebuilds an Order object from a CSV row.
      */
     public static Order fromCsvRow(String line) {
@@ -162,7 +167,6 @@ public class Order {
     }
 
     /**
-     * --- NEW METHOD (This is the one that was missing) ---
      * Loads a list of all orders from orders.csv
      */
     public static List<Order> loadFromCsv(Path path) throws IOException {
@@ -185,7 +189,6 @@ public class Order {
     }
 
     /**
-     * --- NEW METHOD ---
      * Saves a list of all orders to orders.csv
      */
     public static void saveToCsv(Path path, List<Order> orders) throws IOException {

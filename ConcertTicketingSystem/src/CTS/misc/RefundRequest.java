@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import CTS.user.VenueAdmin;
+import CTS.user.User;
 //import CTS.enums.PaymentType;
 //import CTS.enums.PaymentStatus;
 import CTS.enums.RefundStatus;
@@ -34,6 +35,13 @@ public class RefundRequest {
     private Order order;
     private PaymentTransaction refundTxn;
     private VenueAdmin processedBy;
+    
+    private static int NEXT_ID = 1;
+
+    public static int nextId() {
+        return NEXT_ID++;
+    }
+
 
     public RefundRequest(int refundId, Order order, Date createdAt, String reason, RefundStatus status) {
         this.refundId = refundId;
@@ -100,6 +108,9 @@ public class RefundRequest {
         this.processedBy = admin;
         this.reason = reason; // store denial reason
     }
+    
+    
+
 
     // ===== CSV SUPPORT =====
     // CSV format:
@@ -151,6 +162,88 @@ public class RefundRequest {
             this.refundTxnId = refundTxnId;
         }
     }
+    
+    public static List<RefundRequest> loadAll(Path path, List<Order> allOrders) throws IOException {
+        List<RefundRequest> list = new ArrayList<>();
+        List<RawRefundRow> raw = loadRawRows(path);
+
+        for (RawRefundRow r : raw) {
+
+            
+            Order order = Order.findById(r.orderId, allOrders);
+
+            RefundRequest rr = new RefundRequest(
+                    r.refundId,
+                    order,
+                    r.createdAt,
+                    r.reason,
+                    r.status
+            );
+
+            // If adminUserId > 0, attach it
+            if (r.adminUserId > 0 && order != null) {
+                
+            }
+
+            list.add(rr);
+        }
+
+        return list;
+    }
+    
+    public static void append(Path path, RefundRequest r) throws IOException {
+        List<String> lines = new ArrayList<>();
+
+        // If file exists, read current lines
+        if (Files.exists(path)) {
+            lines.addAll(Files.readAllLines(path));
+        } else {
+            // Add header if file is new
+            lines.add("# refundId,orderId,createdAtMillis,reason,status,adminUserId,refundTxnId");
+        }
+
+        long millis = (r.createdAt != null) ? r.createdAt.getTime() : 0L;
+        int adminId = (r.processedBy != null) ? r.processedBy.getUserId() : -1;
+        int refundTxnId = (r.refundTxn != null) ? r.refundTxn.getPaymentId() : -1;
+
+        String row = r.refundId + "," +
+                r.order.getOrderId() + "," +
+                millis + "," +
+                escape(r.reason) + "," +
+                r.status.name() + "," +
+                adminId + "," +
+                refundTxnId;
+
+        lines.add(row);
+        Files.write(path, lines);
+    }
+    
+    public static void saveAll(Path path, List<RefundRequest> list) throws IOException {
+        List<String> lines = new ArrayList<>();
+        lines.add("# refundId,orderId,createdAtMillis,reason,status,adminUserId,refundTxnId");
+
+        for (RefundRequest r : list) {
+            long millis = (r.createdAt != null) ? r.createdAt.getTime() : 0L;
+            int adminId = (r.processedBy != null) ? r.processedBy.getUserId() : -1;
+            int refundTxnId = (r.refundTxn != null) ? r.refundTxn.getPaymentId() : -1;
+
+            lines.add(
+                    r.refundId + "," +
+                    r.order.getOrderId() + "," +
+                    millis + "," +
+                    escape(r.reason) + "," +
+                    r.status.name() + "," +
+                    adminId + "," +
+                    refundTxnId
+            );
+        }
+
+        Files.write(path, lines);
+    }
+
+
+
+
 
     public static List<RawRefundRow> loadRawRows(Path path) throws IOException {
         List<RawRefundRow> result = new ArrayList<>();
@@ -163,6 +256,9 @@ public class RefundRequest {
             }
             String[] parts = line.split(",", 8);
             int refundId = Integer.parseInt(parts[0]);
+            if (refundId >= NEXT_ID) {
+                NEXT_ID = refundId + 1;
+            }
             int orderId = Integer.parseInt(parts[1]);
             String reason = unescape(parts[2]);
             long createdMillis = Long.parseLong(parts[3]);
