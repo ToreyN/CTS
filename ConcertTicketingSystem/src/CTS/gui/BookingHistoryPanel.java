@@ -95,7 +95,7 @@ public class BookingHistoryPanel extends JPanel {
 
         JLabel eventName = new JLabel("Event: " + (event != null ? event.getName() : "Unknown Event"));
         JLabel orderDate = new JLabel("Date: " + order.getCreatedAt());
-        JLabel total = new JLabel("Total: " + order.getTotalAmount());
+        JLabel total = new JLabel("Total: " + order.getTotalAmount().toString());
         JLabel status = new JLabel("Status: " + order.getStatus());
 
         card.add(title);
@@ -118,7 +118,7 @@ public class BookingHistoryPanel extends JPanel {
             for (Ticket t : tickets) {
                 JPanel tPanel = new JPanel(new GridLayout(1, 2));
                 tPanel.add(new JLabel("  " + t.getSeatLabel()));
-                tPanel.add(new JLabel("Price: " + t.getPrice()));
+                tPanel.add(new JLabel("Price: " + t.getPrice().toString()));
                 tPanel.setBackground(new Color(245, 245, 245));
                 card.add(tPanel);
             }

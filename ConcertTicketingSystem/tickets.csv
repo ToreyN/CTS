@@ -1,3 +1,29 @@
-# ticketId,orderId,eventId,priceAmount,priceCurrency,seatLabel
-1,1,1,20.0,USD,General Admission\, Seat 1
-2,1,1,20.0,USD,General Admission\, Seat 2
+# ticketId,orderId,eventId,priceInline,seatLabel
+1,1,1,0.0:,USD\,Seat 123
+2,1,1,0.0:,USD\,Seat 124
+3,2,1,0.0:,USD\,Seat 146
+4,2,1,0.0:,USD\,Seat 147
+5,3,1,0.0:USD,Seat 98
+6,3,1,0.0:USD,Seat 99
+7,4,1,0.0:USD,Seat 56
+8,4,1,0.0:USD,Seat 57
+9,5,1,0.0:USD,Seat 237
+10,5,1,0.0:USD,Seat 238
+11,6,1,20.0:USD,Seat 94
+12,6,1,20.0:USD,Seat 95
+13,7,1,20.0:USD,Seat 256
+14,7,1,20.0:USD,Seat 257
+15,8,1,20.0:USD,Seat 156
+16,8,1,20.0:USD,Seat 157
+17,9,1,20.0:USD,Seat 171
+18,9,1,20.0:USD,Seat 172
+19,10,1,0.0:USD,Seat 274
+20,10,1,0.0:USD,Seat 275
+21,11,4,0.0:USD,Seat 34
+22,11,4,0.0:USD,Seat 35
+23,12,3,0.0:USD,Seat 126
+24,12,3,0.0:USD,Seat 127
+25,12,3,0.0:USD,Seat 128
+26,12,3,0.0:USD,Seat 136
+27,12,3,0.0:USD,Seat 137
+28,12,3,0.0:USD,Seat 138

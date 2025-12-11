@@ -17,7 +17,6 @@ public class UserOrderHelper {
         } catch (Exception ignored) {}
 
         List<Order> mine = new ArrayList<>();
-
         for (Order o : all) {
             if (o.getUserId() == user.getUserId()) {
                 mine.add(o);

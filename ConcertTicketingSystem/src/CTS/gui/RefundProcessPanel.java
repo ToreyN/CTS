@@ -16,7 +16,6 @@ import java.util.Date;
 import java.util.List;
 
 public class RefundProcessPanel extends JPanel {
-
     private final VenueAdmin adminUser;
 
     private final List<Order> orders;

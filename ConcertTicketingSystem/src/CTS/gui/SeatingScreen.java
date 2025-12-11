@@ -23,7 +23,6 @@ public class SeatingScreen extends BaseScreen {
         add(buildGrid(), BorderLayout.CENTER);
         add(buildActions(), BorderLayout.SOUTH);
     }
-
     private JPanel buildGrid() {
         JPanel grid = new JPanel();
 

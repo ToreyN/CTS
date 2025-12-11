@@ -31,6 +31,13 @@ public class GUIApp {
     
     public GUIApp(User user) {
         this.currentUser = user;
+        
+        // --- ADDED: Initialize the JFrame ---
+        this.frame = new JFrame("Concert Ticketing System – Seat Selection");
+        this.frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); // Better to dispose of this sub-window
+        this.frame.setSize(900, 700);
+        this.frame.setLocationRelativeTo(null);
+        // ------------------------------------
     }
 
 

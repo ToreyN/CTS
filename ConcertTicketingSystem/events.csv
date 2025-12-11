@@ -1,3 +1,5 @@
 # eventId,name,startDateTimeMillis,venueName,description,capacity,status,priceInline,ticketsSold
-1,Weezer,1740139200000,TCC,Weezer Blue Album Anniversary tour,300,PUBLISHED,20.0:USD,2
-2,Vampire Weekend,1744894800000,Gila River Arena,Only God Is Above Us tour,400,PUBLISHED,30.0:USD,0
+1,Taylor Swift,1742644800000,TCC,new album,300,PUBLISHED,20.0:USD,0
+2,john mayor,1739887200000,tcc,tour,400,CANCELED,30.0:USD,0
+3,Weezer,1774103400000,Gilla River Arena,Blue album Anniversary,400,PUBLISHED,30.0:USD,0
+4,the weeknd,1755874800000,TCC,After Hours Tour,200,PUBLISHED,35.0:USD,0

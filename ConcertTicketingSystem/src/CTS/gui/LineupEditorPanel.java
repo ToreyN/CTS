@@ -2,11 +2,13 @@ package CTS.gui;
 
 import CTS.event.Event;
 import CTS.event.LineupEntry;
+import CTS.event.Artist; // ADDED: Import Artist for the buildEntryCard robustness
 
 import javax.swing.*;
 import java.awt.*;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.function.Consumer; // ADDED: Import Consumer for the callback fix
 
 public class LineupEditorPanel extends JDialog {
 
@@ -49,8 +51,19 @@ public class LineupEditorPanel extends JDialog {
         add(new JScrollPane(list), BorderLayout.CENTER);
 
         JButton addBtn = new JButton("Add Lineup Entry");
+        // CRITICAL FIX START: Change from this::saveAndRefresh (Runnable)
+        // to a lambda that handles the new LineupEntry object (Consumer)
         addBtn.addActionListener(ev ->
-                new AddLineupEntryDialog(this, event, this::saveAndRefresh));
+            new AddLineupEntryDialog(this, event, (newEntry) -> { 
+                if (newEntry != null) {
+                    // 1. Add the new entry to the global list managed by this panel
+                    this.lineupEntries.add(newEntry); 
+                    // 2. Call the save/refresh method
+                    this.saveAndRefresh(); 
+                }
+            })
+        );
+        // CRITICAL FIX END
 
         JPanel bottom = new JPanel(new FlowLayout(FlowLayout.LEFT));
         bottom.add(addBtn);
@@ -64,8 +77,16 @@ public class LineupEditorPanel extends JDialog {
         JPanel card = new JPanel(new GridLayout(0,1));
         card.setBorder(BorderFactory.createTitledBorder("Position " + entry.getPosition()));
 
-        card.add(new JLabel("Artist: " + entry.getArtist().getStageName()));
-        card.add(new JLabel("Genre: " + entry.getArtist().getGenre()));
+        // CRITICAL: Add null check for robustness
+        Artist artist = entry.getArtist();
+        String artistName = (artist != null) ? artist.getStageName() : "Unknown Artist / Missing Data";
+        String artistGenre = (artist != null) ? artist.getGenre() : "N/A";
+        
+        card.add(new JLabel("Artist: " + artistName));
+        card.add(new JLabel("Genre: " + artistGenre));
+        // OLD: card.add(new JLabel("Artist: " + entry.getArtist().getStageName()));
+        // OLD: card.add(new JLabel("Genre: " + entry.getArtist().getGenre()));
+        
         card.add(new JLabel("Notes: " + entry.getNotes()));
 
         JPanel actions = new JPanel(new FlowLayout(FlowLayout.LEFT));
@@ -104,8 +125,10 @@ public class LineupEditorPanel extends JDialog {
     }
 
     private void removeEntry(LineupEntry entry) {
+        // Remove from the Event's local lineup
         event.getLineup().remove(entry);
-        lineupEntries.remove(entry);
+        // Remove from the global lineup list managed by the panel
+        lineupEntries.remove(entry); 
         saveAndRefresh();
     }
 

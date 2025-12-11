@@ -30,7 +30,9 @@ public class userDatabase {
     }
 
     //  I/O  Methods  ---
-
+    public java.util.List<User> getAllUsers() {
+        return this.users;
+    }
  
     private void loadFromFile() {
         File file = new File(filePath);

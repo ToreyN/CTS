@@ -21,8 +21,9 @@ public class EventEditorDialog extends JDialog {
 
         boolean creating = (event == null);
         if (creating) {
+            // CRITICAL FIX 1: Use the robust, static ID generator
             event = new Event(
-                    generateId(),
+                    CTS.event.Event.nextId(), 
                     "",
                     null,
                     "",
@@ -41,6 +42,8 @@ public class EventEditorDialog extends JDialog {
         JTextField venue = new JTextField(finalEvent.getVenueName());
         JTextField desc = new JTextField(finalEvent.getDescription());
         JTextField capacity = new JTextField("" + finalEvent.getCapacity());
+        
+        // Ensure price display uses only the amount
         JTextField price = new JTextField("" + finalEvent.getBasePrice().getAmount());
 
         JTextField dateField = new JTextField(
@@ -66,6 +69,7 @@ public class EventEditorDialog extends JDialog {
         save.addActionListener(ev -> {
             try {
                 
+                // 1. Update the in-memory event object
                 finalEvent.setName(name.getText());
                 finalEvent.setVenue(venue.getText());
                 finalEvent.updateDescription(desc.getText());
@@ -78,17 +82,14 @@ public class EventEditorDialog extends JDialog {
                 }
                 // ----------------------------------------------------------------
 
-                // Load all events
-                List<Event> list = Event.loadFromCsv(Paths.get("events.csv"));
-
-                // Replace existing event
-                list.removeIf(e -> e.getEventId() == finalEvent.getEventId());
-                list.add(finalEvent);
-
-                // Save back to CSV
-                Event.saveToCsv(Paths.get("events.csv"), list);
-
-                onSave.run();
+                // CRITICAL FIX 2: REMOVE ALL FILE I/O HERE. 
+                // We rely on EventManagerPanel to manage the list and save it.
+                
+                // The onSave runnable (which is EventManagerPanel::saveChanges)
+                // is responsible for checking if this is a NEW event and adding it
+                // to its internal list before saving.
+                
+                onSave.run(); // Calls the save and refresh logic in EventManagerPanel
                 dispose();
 
             } catch (Exception ex) {
@@ -100,13 +101,6 @@ public class EventEditorDialog extends JDialog {
 
         setVisible(true);
     }
-
-    private int generateId() {
-        try {
-            var events = Event.loadFromCsv(Paths.get("events.csv"));
-            return events.stream().mapToInt(Event::getEventId).max().orElse(0) + 1;
-        } catch (Exception e) {
-            return 1;
-        }
-    }
+    
+    // CRITICAL FIX 3: DELETE THE generateId() METHOD.
 }

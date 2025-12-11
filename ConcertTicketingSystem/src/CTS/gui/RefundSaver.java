@@ -14,7 +14,6 @@ public class RefundSaver {
 
             // Header if file did not exist
             if (!exists) {
-                pw.println("# refundId,orderId,createdAtMillis,reason,status,adminUserId");
             }
 
             pw.println(rr.toCsvRow());
